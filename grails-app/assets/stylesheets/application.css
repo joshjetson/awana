@@ -1,0 +1,10 @@
+/*
+* Minimal application.css for Tailwind CSS-based Grails application
+*
+* Tailwind CSS will be built using npm and included directly
+*
+*= require tailwind
+*= require grails
+*= require errors
+*= require_self
+*/
