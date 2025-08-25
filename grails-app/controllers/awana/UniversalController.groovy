@@ -10,6 +10,15 @@ class UniversalController {
     UniversalDataService universalDataService
 
     /**
+     * GET /
+     * Index page for testing login
+     */
+    def index() {
+        // Just render the main index view 
+        [:]
+    }
+
+    /**
      * GET /universal/{domainName}
      * List all instances of a domain class with optional pagination and search
      */
@@ -34,7 +43,11 @@ class UniversalController {
                     defaultOrder: 'desc'
                 ])
                 
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    // Render template fragment for HTMX
+                    render(template: 'listTable', model: [result: result, domainName: domainName])
+                    return
+                } else if (isJsonRequest()) {
                     render result as JSON
                 } else {
                     [result: result, domainName: domainName]
@@ -43,7 +56,11 @@ class UniversalController {
                 // Simple listing
                 def instances = universalDataService.list(domainClass)
                 
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    // Render template fragment for HTMX
+                    render(template: 'listItems', model: [instances: instances, domainName: domainName])
+                    return
+                } else if (isJsonRequest()) {
                     render instances as JSON
                 } else {
                     [instances: instances, domainName: domainName]
@@ -77,7 +94,11 @@ class UniversalController {
                 return
             }
 
-            if (isAjaxRequest()) {
+            if (isHtmxRequest()) {
+                // Render template fragment for HTMX
+                render(template: 'showDetail', model: [instance: instance, domainName: domainName])
+                return
+            } else if (isJsonRequest()) {
                 render instance as JSON
             } else {
                 [instance: instance, domainName: domainName]
@@ -105,14 +126,21 @@ class UniversalController {
             def instance = universalDataService.save(domainClass, params)
             
             if (instance) {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    // Render success template fragment for HTMX
+                    render(template: 'createSuccess', model: [instance: instance, domainName: domainName])
+                    return
+                } else if (isJsonRequest()) {
                     render status: 201, contentType: 'application/json', text: (instance as JSON).toString()
                 } else {
                     flash.success = "${domainName} created successfully"
                     redirect action: 'show', params: [domainName: domainName, id: instance.id]
                 }
             } else {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    render status: 400, template: 'createError', model: [domainName: domainName, message: "Failed to create ${domainName}"]
+                    return
+                } else if (isJsonRequest()) {
                     render status: 400, text: "Failed to create ${domainName}"
                 } else {
                     flash.error = "Failed to create ${domainName}"
@@ -143,14 +171,21 @@ class UniversalController {
             def instance = universalDataService.update(domainClass, id, params)
             
             if (instance) {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    // Render updated template fragment for HTMX
+                    render(template: 'updateSuccess', model: [instance: instance, domainName: domainName])
+                    return
+                } else if (isJsonRequest()) {
                     render instance as JSON
                 } else {
                     flash.success = "${domainName} updated successfully"
                     redirect action: 'show', params: [domainName: domainName, id: id]
                 }
             } else {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    render status: 400, template: 'updateError', model: [domainName: domainName, message: "Failed to update ${domainName}"]
+                    return
+                } else if (isJsonRequest()) {
                     render status: 400, text: "Failed to update ${domainName}"
                 } else {
                     flash.error = "Failed to update ${domainName} or not found"
@@ -181,14 +216,21 @@ class UniversalController {
             boolean deleted = universalDataService.deleteById(domainClass, id)
             
             if (deleted) {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    // For HTMX deletes, typically remove the element from DOM or show success message
+                    render status: 200, template: 'deleteSuccess', model: [domainName: domainName, id: id]
+                    return
+                } else if (isJsonRequest()) {
                     render status: 204, text: ''
                 } else {
                     flash.success = "${domainName} deleted successfully"
                     redirect action: 'list', params: [domainName: domainName]
                 }
             } else {
-                if (isAjaxRequest()) {
+                if (isHtmxRequest()) {
+                    render status: 404, template: 'deleteError', model: [domainName: domainName, message: "${domainName} not found"]
+                    return
+                } else if (isJsonRequest()) {
                     render status: 404, text: "${domainName} not found"
                 } else {
                     flash.error = "${domainName} not found or could not be deleted"
@@ -276,11 +318,17 @@ class UniversalController {
     }
 
     /**
-     * Check if this is an AJAX request
+     * Check if this is an HTMX request
      */
-    private boolean isAjaxRequest() {
-        return request.getHeader('X-Requested-With') == 'XMLHttpRequest' || 
-               params.format == 'json' || 
+    private boolean isHtmxRequest() {
+        return request.getHeader('HX-Request') == 'true'
+    }
+
+    /**
+     * Check if this is a JSON API request (for REST endpoints)
+     */
+    private boolean isJsonRequest() {
+        return params.format == 'json' || 
                request.getHeader('Accept')?.contains('application/json')
     }
 }

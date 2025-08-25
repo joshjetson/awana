@@ -23,6 +23,32 @@
     <asset:stylesheet src="application.css"/>
     
     <!-- HTMX loaded locally from assets -->
+    <asset:javascript src="htmx.min.js"/>
+    
+    <!-- Custom animations for notifications -->
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .htmx-indicator {
+            display: none;
+        }
+        
+        .htmx-request .htmx-indicator {
+            display: inline-block;
+        }
+        
+        .htmx-request button {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
 
     <g:layoutHead/>
 </head>

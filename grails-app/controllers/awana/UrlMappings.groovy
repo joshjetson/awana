@@ -10,6 +10,11 @@ class UrlMappings {
         "/api/universal/$domainName/$id"(controller: "universal", action: "update", method: "PUT")
         "/api/universal/$domainName/$id"(controller: "universal", action: "delete", method: "DELETE")
         
+        // Login routes
+        "/login"(controller: "login", action: "index")
+        "/login/auth"(controller: "login", action: "auth")
+        // Spring Security will handle /login/authenticate and /logout automatically
+        
         // Standard Grails mappings
         "/$controller/$action?/$id?(.$format)?"{
             constraints {
@@ -17,7 +22,7 @@ class UrlMappings {
             }
         }
 
-        "/"(view:"/index")
+        "/"(controller: "universal", action: "index")
         "500"(view:'/error')
         "404"(view:'/notFound')
     }

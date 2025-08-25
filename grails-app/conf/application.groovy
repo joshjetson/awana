@@ -6,12 +6,11 @@ grails.plugin.springsecurity.successHandler.defaultTargetUrl = '/'
 grails.plugin.springsecurity.successHandler.alwaysUseDefault = true
 grails.plugin.springsecurity.auth.loginFormUrl = '/login/auth'
 grails.plugin.springsecurity.failureHandler.defaultFailureUrl = '/login/auth?login_error=1'
+grails.plugin.springsecurity.logout.afterLogoutUrl = '/'
+grails.plugin.springsecurity.logout.postOnly = false
 
 grails.plugin.springsecurity.controllerAnnotations.staticRules = [
-        [pattern: '/',               access: ['permitAll']],
         [pattern: '/error',          access: ['permitAll']],
-        [pattern: '/index',          access: ['permitAll']],
-        [pattern: '/index.gsp',      access: ['permitAll']],
         [pattern: '/shutdown',       access: ['permitAll']],
         [pattern: '/assets/**',      access: ['permitAll']],
         [pattern: '/**/js/**',       access: ['permitAll']],
@@ -41,9 +40,5 @@ grails.plugin.springsecurity.interceptUrlMap = [
         [pattern: '/**/css/**',      access: ['permitAll']],
         [pattern: '/**/images/**',   access: ['permitAll']],
         [pattern: '/**/favicon.ico', access: ['permitAll']],
-        [pattern: '/',               access: ['permitAll']],
-        [pattern: '/index',          access: ['permitAll']],
-        [pattern: '/index.gsp',      access: ['permitAll']],
-        // [pattern: '/api/universal/*/count',  access: ['permitAll']], // Removed - testing complete
         [pattern: '/**',             access: ['ROLE_USER', 'ROLE_ADMIN']]
 ]
