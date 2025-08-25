@@ -11,11 +11,35 @@ class UniversalController {
 
     /**
      * GET /
-     * Index page for testing login
+     * Index page - Awana Club Dashboard
      */
     def index() {
-        // Just render the main index view 
-        [:]
+        try {
+            // Get all dashboard data in a single transaction for efficiency
+            def studentCount = universalDataService.count(awana.Student)
+            def householdCount = universalDataService.count(awana.Household)
+            def clubCount = universalDataService.count(awana.Club)
+            def clubs = universalDataService.list(awana.Club)
+            def households = universalDataService.list(awana.Household)
+            
+            [
+                studentCount: studentCount,
+                householdCount: householdCount,
+                clubCount: clubCount,
+                clubs: clubs,
+                households: households
+            ]
+        } catch (Exception e) {
+            log.error("Error loading dashboard data: ${e.message}", e)
+            // Return empty data on error to prevent page crash
+            [
+                studentCount: 0,
+                householdCount: 0,
+                clubCount: 0,
+                clubs: [],
+                households: []
+            ]
+        }
     }
 
     /**
