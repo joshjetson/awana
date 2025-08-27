@@ -66,12 +66,14 @@
                     </svg>
                 </div>
             </div>
-            <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition-colors">
-                <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
-                </svg>
-                Scan Family QR Code
-            </button>
+            <g:set var="qrIcon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/></svg></g:set>
+            <g:render template="/components/touchButton" model="[
+                text: 'Scan Family QR Code',
+                style: 'success', 
+                size: 'lg',
+                icon: qrIcon,
+                href: '/checkin'
+            ]"/>
         </div>
 
         <!-- Club Overview Cards -->
@@ -179,14 +181,14 @@
                 <div class="text-sm text-gray-600">Manage Rewards</div>
             </button>
 
-            <button class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
+            <button onclick="showStudentSearch()" class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center w-full">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                 </div>
-                <div class="font-medium text-gray-900">Verses</div>
-                <div class="text-sm text-gray-600">Track Progress</div>
+                <div class="font-medium text-gray-900">Student Management</div>
+                <div class="text-sm text-gray-600">Search & Track Progress</div>
             </button>
 
             <button class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
@@ -201,7 +203,52 @@
         </div>
 
     </div>
+    
+    <!-- Dynamic Content Area for SPA -->
+    <div id="spa-content" class="max-w-4xl mx-auto px-4 py-6" style="display: none;">
+        <div class="flex items-center justify-between mb-4">
+            <button onclick="hideSpaContent()" class="flex items-center space-x-2 text-blue-600 hover:text-blue-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m0 7h18"/>
+                </svg>
+                <span>Back to Dashboard</span>
+            </button>
+        </div>
+        <div id="dynamic-content">
+            <!-- Dynamic views load here -->
+        </div>
+    </div>
 </div>
+
+<!-- Bottom Navigation -->
+<g:render template="/components/bottomNavBar" model="[currentPage: 'dashboard']"/>
+
+<script>
+// SPA functionality
+function showStudentSearch() {
+    // Load student search view
+    htmx.ajax('GET', '/renderView', {
+        values: { viewType: 'studentSearch' },
+        target: '#dynamic-content',
+        swap: 'innerHTML'
+    }).then(() => {
+        document.querySelector('.min-h-screen').style.display = 'none';
+        document.getElementById('spa-content').style.display = 'block';
+    });
+}
+
+// Functions are now defined globally in application.js
+
+function hideSpaContent() {
+    document.getElementById('spa-content').style.display = 'none';
+    document.querySelector('.min-h-screen').style.display = 'block';
+}
+
+// Make these functions available globally for the rendered views
+window.showClubOverview = showClubOverview;
+window.showVerseCompletion = showVerseCompletion;
+window.hideSpaContent = hideSpaContent;
+</script>
 
 </body>
 </html>

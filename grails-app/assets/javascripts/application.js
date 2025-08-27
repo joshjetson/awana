@@ -25,3 +25,61 @@ document.addEventListener('DOMContentLoaded', function() {
     // PWA-optimized touch handling
     document.body.style.touchAction = 'manipulation';
 });
+
+// ====================================================================
+// GLOBAL AWANA APPLICATION FUNCTIONS
+// ====================================================================
+
+// Common function for showing verse completion view
+function showVerseCompletion(studentId) {
+    htmx.ajax('GET', '/renderView', {
+        values: { 
+            viewType: 'verseCompletion',
+            studentId: studentId
+        },
+        target: '#dynamic-content, #spa-content #dynamic-content',
+        swap: 'innerHTML'
+    }).then(() => {
+        // Show dynamic content area (works for both index.gsp and students.gsp)
+        const dynamicContent = document.getElementById('dynamic-content') || 
+                              document.querySelector('#spa-content #dynamic-content');
+        const spaContent = document.getElementById('spa-content');
+        
+        if (spaContent && dynamicContent === document.querySelector('#spa-content #dynamic-content')) {
+            // We're on index.gsp - show SPA content
+            document.querySelector('.min-h-screen').style.display = 'none';
+            spaContent.style.display = 'block';
+        } else if (dynamicContent) {
+            // We're on students.gsp - show dynamic content and scroll
+            dynamicContent.style.display = 'block';
+            dynamicContent.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+}
+
+// Common function for showing club overview
+function showClubOverview(clubId, clubName) {
+    htmx.ajax('GET', '/renderView', {
+        values: { 
+            viewType: 'clubOverview',
+            clubId: clubId
+        },
+        target: '#dynamic-content, #spa-content #dynamic-content',
+        swap: 'innerHTML'
+    }).then(() => {
+        // Show dynamic content area (works for both index.gsp and students.gsp)  
+        const dynamicContent = document.getElementById('dynamic-content') ||
+                              document.querySelector('#spa-content #dynamic-content');
+        const spaContent = document.getElementById('spa-content');
+        
+        if (spaContent && dynamicContent === document.querySelector('#spa-content #dynamic-content')) {
+            // We're on index.gsp - show SPA content
+            document.querySelector('.min-h-screen').style.display = 'none';
+            spaContent.style.display = 'block';
+        } else if (dynamicContent) {
+            // We're on students.gsp - show dynamic content and scroll
+            dynamicContent.style.display = 'block';
+            dynamicContent.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+}

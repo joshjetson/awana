@@ -92,11 +92,11 @@ class Calendar {
 
     static Calendar getCurrentSemester() {
         Date today = new Date()
-        return Calendar.find("FROM Calendar WHERE startDate <= ? AND endDate >= ?", [today, today])
+        return Calendar.find("FROM Calendar WHERE startDate <= :today1 AND endDate >= :today2", [today1: today, today2: today])
     }
 
     static List<Calendar> findAllActive() {
         Date today = new Date()
-        return Calendar.findAll("FROM Calendar WHERE startDate <= ? AND endDate >= ?", [today, today])
+        return Calendar.findAll("FROM Calendar WHERE startDate <= :today1 AND endDate >= :today2", [today1: today, today2: today])
     }
 }

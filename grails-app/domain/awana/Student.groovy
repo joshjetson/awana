@@ -38,12 +38,12 @@ class Student {
 
     Integer getAge() {
         if (!dateOfBirth) return 0
+        
         Date today = new Date()
-        Integer years = today.year - dateOfBirth.year
-        if (today.dayOfYear < dateOfBirth.dayOfYear) {
-            years--
-        }
-        return years
+        long ageInMillis = today.time - dateOfBirth.time
+        long ageInYears = ageInMillis / (365.25 * 24 * 60 * 60 * 1000)
+        
+        return (int) ageInYears
     }
 
     Integer calculateTotalBucks() {

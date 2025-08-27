@@ -10,6 +10,34 @@ class UniversalController {
     UniversalDataService universalDataService
 
     /**
+     * Dynamic view rendering map using closures
+     * Frontend can specify viewType and context to render specific views
+     */
+    private def viewRenderMap = [
+        'checkInFamily': { params -> 
+            checkInFamilyView(params)
+        },
+        'studentSearch': { params ->
+            studentSearchView(params)
+        },
+        'verseCompletion': { params ->
+            verseCompletionView(params) 
+        },
+        'studentProgress': { params ->
+            studentProgressView(params)
+        },
+        'storeTransaction': { params ->
+            storeTransactionView(params)
+        },
+        'clubOverview': { params ->
+            clubOverviewView(params)
+        },
+        'attendanceRecord': { params ->
+            attendanceRecordView(params)
+        }
+    ]
+
+    /**
      * GET /
      * Index page - Awana Club Dashboard
      */
@@ -39,6 +67,193 @@ class UniversalController {
                 clubs: [],
                 households: []
             ]
+        }
+    }
+
+    /**
+     * GET /checkin
+     * Family Check-In page - QR code scanning and family display
+     */
+    def checkin() {
+        try {
+            // Get households for manual search fallback
+            def households = universalDataService.list(awana.Household)
+            
+            [
+                households: households
+            ]
+        } catch (Exception e) {
+            log.error("Error loading check-in data: ${e.message}", e)
+            [households: []]
+        }
+    }
+
+    /**
+     * GET /checkin/family/{qrCode}
+     * Display family by QR code for check-in
+     */
+    def checkInFamily() {
+        String qrCode = params.qrCode
+        
+        if (!qrCode) {
+            if (isHtmxRequest()) {
+                render status: 400, template: 'checkInError', model: [message: "QR Code is required"]
+                return
+            } else {
+                flash.error = "QR Code is required"
+                redirect action: 'checkin'
+                return
+            }
+        }
+
+        try {
+            def household = awana.Household.findByQrCode(qrCode)
+            
+            if (!household) {
+                if (isHtmxRequest()) {
+                    render status: 404, template: 'checkInError', model: [message: "Family not found for QR code: ${qrCode}"]
+                    return
+                } else {
+                    flash.error = "Family not found for QR code: ${qrCode}"
+                    redirect action: 'checkin'
+                    return
+                }
+            }
+
+            def students = household.getAllStudents()
+            def today = new Date()
+            
+            // Get today's attendance for each student to show current status
+            def attendanceMap = [:]
+            students.each { student ->
+                def todaysAttendance = awana.Attendance.findByStudentAndAttendanceDate(student, today)
+                attendanceMap[student.id] = todaysAttendance
+            }
+
+            if (isHtmxRequest()) {
+                render template: 'familyCheckIn', model: [
+                    household: household,
+                    students: students,
+                    attendanceMap: attendanceMap,
+                    today: today
+                ]
+            } else {
+                [
+                    household: household,
+                    students: students,
+                    attendanceMap: attendanceMap,
+                    today: today
+                ]
+            }
+        } catch (Exception e) {
+            log.error("Error loading family for check-in: ${e.message}", e)
+            if (isHtmxRequest()) {
+                render status: 500, template: 'checkInError', model: [message: "Error loading family data"]
+            } else {
+                flash.error = "Error loading family data"
+                redirect action: 'checkin'
+            }
+        }
+    }
+
+    /**
+     * GET /universal/students
+     * Student management page
+     */
+    def students() {
+        try {
+            def clubs = universalDataService.list(awana.Club)
+            def studentCount = universalDataService.count(awana.Student)
+            
+            [
+                clubs: clubs,
+                studentCount: studentCount
+            ]
+        } catch (Exception e) {
+            log.error("Error loading students page: ${e.message}", e)
+            flash.error = "Error loading students page"
+            redirect action: 'index'
+        }
+    }
+
+    /**
+     * GET /store
+     * Awana store page - placeholder for now
+     */
+    def store() {
+        try {
+            // Placeholder - could use storeTransaction view or create dedicated store view
+            flash.message = "Awana Store coming soon!"
+            redirect action: 'index'
+        } catch (Exception e) {
+            log.error("Error loading store page: ${e.message}", e)
+            flash.error = "Error loading store page"
+            redirect action: 'index'
+        }
+    }
+
+    /**
+     * GET /reports  
+     * Reports and analytics page - placeholder for now
+     */
+    def reports() {
+        try {
+            // Placeholder - could use attendanceRecord view or create dedicated reports view
+            flash.message = "Reports and Analytics coming soon!"
+            redirect action: 'index'
+        } catch (Exception e) {
+            log.error("Error loading reports page: ${e.message}", e)
+            flash.error = "Error loading reports page"
+            redirect action: 'index'
+        }
+    }
+
+    /**
+     * GET /universal/verseCompletion
+     * Verse completion page
+     */
+    def verseCompletion() {
+        try {
+            def result = verseCompletionView(params)
+            return result.model
+        } catch (Exception e) {
+            log.error("Error loading verse completion page: ${e.message}", e)
+            flash.error = "Error loading verse completion page"
+            redirect action: 'index'
+        }
+    }
+
+    /**
+     * GET /universal/chapterSections
+     * Load chapter sections dynamically for verse completion
+     */
+    def chapterSections() {
+        Long chapterId = params.long('chapter.id') ?: params.long('chapterId')
+        
+        if (!chapterId) {
+            render status: 400, text: "Chapter ID is required"
+            return
+        }
+
+        try {
+            def chapter = universalDataService.getById(awana.Chapter, chapterId)
+            if (!chapter) {
+                render status: 404, text: "Chapter not found"
+                return
+            }
+
+            def sections = chapter.chapterSections ?: []
+            
+            if (isHtmxRequest()) {
+                render template: 'chapterSections', model: [sections: sections, chapter: chapter]
+            } else if (isJsonRequest()) {
+                render sections as JSON
+            } else {
+                render template: 'chapterSections', model: [sections: sections, chapter: chapter]
+            }
+        } catch (Exception e) {
+            log.error("Error loading chapter sections: ${e.message}", e)
+            render status: 500, text: "Error loading chapter sections"
         }
     }
 
@@ -287,6 +502,275 @@ class UniversalController {
             log.error("Error counting ${domainName}: ${e.message}")
             render status: 500, text: "Error counting ${domainName}"
         }
+    }
+
+    /**
+     * POST /universal/renderView
+     * Dynamic view rendering based on frontend instructions
+     */
+    def renderView() {
+        String viewType = params.viewType
+        String context = params.context
+        
+        if (!viewType) {
+            render status: 400, text: "viewType parameter is required"
+            return
+        }
+
+        try {
+            def viewClosure = viewRenderMap[viewType]
+            if (viewClosure) {
+                def result = viewClosure(params)
+                
+                if (isJsonRequest()) {
+                    render result.model as JSON
+                } else {
+                    // Always render template for SPA approach
+                    render template: result.template, model: result.model
+                }
+            } else {
+                render status: 404, text: "Unknown view type: ${viewType}"
+            }
+        } catch (Exception e) {
+            log.error("Error rendering view ${viewType}: ${e.message}", e)
+            render status: 500, text: "Error rendering view"
+        }
+    }
+
+    // ====================================================================
+    // DYNAMIC VIEW CLOSURE METHODS
+    // ====================================================================
+
+    private def checkInFamilyView(params) {
+        String qrCode = params.qrCode ?: params.householdId
+        
+        if (!qrCode) {
+            throw new IllegalArgumentException("QR Code or household ID required")
+        }
+
+        def household = awana.Household.findByQrCode(qrCode) ?: awana.Household.get(qrCode)
+        if (!household) {
+            throw new IllegalArgumentException("Family not found")
+        }
+
+        def students = household.getAllStudents()
+        def today = new Date()
+        def attendanceMap = [:]
+        
+        students.each { student ->
+            def todaysAttendance = awana.Attendance.findByStudentAndAttendanceDate(student, today)
+            attendanceMap[student.id] = todaysAttendance
+        }
+
+        return [
+            template: 'familyCheckIn',
+            model: [
+                household: household,
+                students: students, 
+                attendanceMap: attendanceMap,
+                today: today
+            ]
+        ]
+    }
+
+    private def studentSearchView(params) {
+        def clubs = universalDataService.list(awana.Club)
+        def students = []
+        def title = "Student Search"
+        def filter = params.filter
+        def showAll = params.showAll == 'true'
+        
+        if (showAll) {
+            students = universalDataService.list(awana.Student)
+            title = "All Students"
+        } else if (filter) {
+            switch (filter) {
+                case 'topPerformers':
+                    students = awana.Student.list().sort { -it.calculateTotalBucks() }.take(10)
+                    title = "Top Performers"
+                    break
+                case 'recentCompletions':
+                    def recentCompletions = awana.SectionVerseCompletion.findAll(
+                        "FROM SectionVerseCompletion WHERE completionDate >= :weekAgo ORDER BY completionDate DESC",
+                        [weekAgo: new Date() - 7]
+                    ).take(20)
+                    students = recentCompletions.collect { it.student }.unique()
+                    title = "Recent Verse Completions"
+                    break
+                case 'needsAttention':
+                    students = awana.Student.list().findAll { it.calculateTotalBucks() < 5 }
+                    title = "Students Needing Attention"
+                    break
+            }
+        }
+        
+        // If showing filtered results, use the simple student list template
+        if (showAll || filter) {
+            return [
+                template: 'studentList',
+                model: [
+                    students: students,
+                    title: title
+                ]
+            ]
+        } else {
+            // Otherwise show the full search interface
+            return [
+                template: 'studentSearch',
+                model: [
+                    clubs: clubs,
+                    studentCount: universalDataService.count(awana.Student)
+                ]
+            ]
+        }
+    }
+
+    private def verseCompletionView(params) {
+        Long studentId = params.long('studentId')
+        String clubId = params.clubId
+        
+        def students = []
+        def selectedStudent = null
+        
+        if (studentId) {
+            selectedStudent = universalDataService.getById(awana.Student, studentId)
+            students = [selectedStudent]
+        } else if (clubId) {
+            def club = universalDataService.getById(awana.Club, Long.valueOf(clubId))
+            students = club?.students ?: []
+        } else {
+            students = universalDataService.list(awana.Student)
+        }
+
+        // Get available chapters for verse completion
+        def clubs = universalDataService.list(awana.Club)
+        def chapters = []
+        
+        // Get all chapters from all books across all clubs for now
+        clubs.each { club ->
+            club.books?.each { book ->
+                chapters.addAll(book.chapters ?: [])
+            }
+        }
+
+        return [
+            template: 'verseCompletion',
+            model: [
+                students: students,
+                selectedStudent: selectedStudent,
+                clubs: clubs,
+                chapters: chapters
+            ]
+        ]
+    }
+
+    private def studentProgressView(params) {
+        Long studentId = params.long('studentId')
+        
+        if (!studentId) {
+            throw new IllegalArgumentException("Student ID required")
+        }
+        
+        def student = universalDataService.getById(awana.Student, studentId)
+        if (!student) {
+            throw new IllegalArgumentException("Student not found")
+        }
+
+        def completedSections = student.getCompletedSections()
+        def attendanceHistory = student.attendances?.sort { -it.attendanceDate.time }
+        def attendancePercentage = student.getAttendancePercentage()
+
+        return [
+            template: 'studentProgress',
+            model: [
+                student: student,
+                completedSections: completedSections,
+                attendanceHistory: attendanceHistory,
+                attendancePercentage: attendancePercentage
+            ]
+        ]
+    }
+
+    private def storeTransactionView(params) {
+        Long studentId = params.long('studentId')
+        String action = params.action // 'browse', 'purchase', 'balance'
+        
+        def student = null
+        if (studentId) {
+            student = universalDataService.getById(awana.Student, studentId)
+        }
+
+        // Mock store items (in real app these would be in database)
+        def storeItems = [
+            [id: 1, name: 'Candy Bar', price: 2, category: 'Snacks', inStock: true],
+            [id: 2, name: 'Small Toy', price: 5, category: 'Toys', inStock: true],
+            [id: 3, name: 'Bible Stickers', price: 1, category: 'Stickers', inStock: true],
+            [id: 4, name: 'Pencil', price: 3, category: 'School Supplies', inStock: true],
+            [id: 5, name: 'Big Prize', price: 15, category: 'Special', inStock: true]
+        ]
+
+        return [
+            template: 'storeTransaction', 
+            model: [
+                student: student,
+                storeItems: storeItems,
+                action: action ?: 'browse'
+            ]
+        ]
+    }
+
+    private def clubOverviewView(params) {
+        Long clubId = params.long('clubId')
+        
+        def club = null
+        def students = []
+        
+        if (clubId) {
+            club = universalDataService.getById(awana.Club, clubId)
+            students = club?.students?.toList() ?: []
+        }
+
+        def clubs = universalDataService.list(awana.Club)
+
+        return [
+            template: 'clubOverview',
+            model: [
+                club: club,
+                clubs: clubs,
+                students: students
+            ]
+        ]
+    }
+
+    private def attendanceRecordView(params) {
+        String dateStr = params.date ?: new Date().format('yyyy-MM-dd')
+        Date selectedDate = Date.parse('yyyy-MM-dd', dateStr)
+        Long clubId = params.long('clubId')
+        
+        def club = null
+        def attendanceRecords = []
+        
+        if (clubId) {
+            club = universalDataService.getById(awana.Club, clubId)
+            attendanceRecords = awana.Attendance.findAllByAttendanceDateAndStudentInList(
+                selectedDate, 
+                club.getActiveStudents()
+            )
+        } else {
+            attendanceRecords = awana.Attendance.findAllByAttendanceDate(selectedDate)
+        }
+
+        def clubs = universalDataService.list(awana.Club)
+
+        return [
+            template: 'attendanceRecord',
+            model: [
+                selectedDate: selectedDate,
+                club: club,
+                clubs: clubs,
+                attendanceRecords: attendanceRecords
+            ]
+        ]
     }
 
     // ====================================================================
