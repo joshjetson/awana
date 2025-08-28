@@ -8,17 +8,15 @@ class BootStrap {
     BootstrapService bootstrapService
 
     def init = { servletContext ->
-        if (Environment.current == Environment.DEVELOPMENT) {
-            createAwanaData()
+        environments {
+            development {
+
+            }
+            production {
+
+            }
         }
-    }
-    
-    def destroy = {
-    }
-    
-    @Transactional
-    private void createAwanaData() {
-        // Create roles and users first
+        
         bootstrapService.createRoles()
         bootstrapService.createDevelopmentUsers()
         
@@ -30,4 +28,8 @@ class BootStrap {
             log.info("Awana data already exists, skipping bootstrap creation")
         }
     }
+    
+    def destroy = {
+    }
+    
 }

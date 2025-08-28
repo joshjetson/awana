@@ -25,7 +25,13 @@
     </div>
 </content>
 
-<g:render template="verseCompletion" model="[students: students, chapters: chapters, clubs: clubs]"/>
+<!-- Dynamic Verse Completion Content (loaded via HTMX) -->
+<div id="verse-completion-page-content" 
+     hx-get="/renderView?viewType=verseCompletion" 
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <!-- Verse completion content loads here via HTMX -->
+</div>
 
 </body>
 </html>

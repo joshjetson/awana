@@ -165,6 +165,135 @@ Track Awana club members' attendance, Bible verse memorization progress, handboo
 - **User testing:** Test each implementation before moving forward
 - **Touch device testing:** Validate on actual iPads/Android tablets used in clubs
 
+## Universal Architecture Pattern - "Two-Phase Loading"
+
+This is our signature pattern for creating consistent, fast-loading pages with progressive enhancement. **Use this pattern for ALL new pages and features.**
+
+### The Pattern Explained
+
+Every page follows a two-phase loading approach:
+
+#### Phase 1: Page Shell (Instant Loading)
+```groovy
+// Controller action returns empty model - just renders page skeleton
+def pageName() {
+    // This just renders the pageName.gsp page skeleton
+    // The actual content is loaded via /renderView?viewType=pageName
+    [:]
+}
+```
+
+#### Phase 2: Dynamic Content (Progressive Loading)
+```gsp
+<!-- In pageName.gsp - declarative HTMX loads content -->
+<div id="page-content" 
+     hx-get="/renderView?viewType=pageName" 
+     hx-trigger="load"
+     hx-swap="innerHTML">
+    <!-- Dynamic content loads here via HTMX -->
+</div>
+```
+
+#### ViewRenderMap Entry (Backend Logic)
+```groovy
+// In UniversalController viewRenderMap
+'pageName': { params ->
+    def data = universalDataService.list(SomeDomain)
+    return [
+        template: 'pageName',  // Points to _pageName.gsp
+        model: [data: data]
+    ]
+}
+```
+
+### Why This Pattern?
+
+1. **Instant Page Load** - Static shell appears immediately
+2. **Progressive Enhancement** - Data loads in background
+3. **Consistent Architecture** - Same pattern everywhere
+4. **Backend Agnostic** - Logic in closures, not controller actions
+5. **HTMX Native** - Declarative, no JavaScript needed
+
+### Implementation Examples
+
+#### Example 1: Clubs Management (Complete Implementation)
+```groovy
+// Controller action
+def clubs() { [:] }
+
+// ViewRenderMap entry
+'clubs': { params ->
+    def clubs = universalDataService.list(Club)
+    return [template: 'clubs', model: [clubs: clubs, clubCount: clubs.size()]]
+}
+```
+
+```gsp
+<!-- clubs.gsp - page skeleton -->
+<div id="clubs-page-content" 
+     hx-get="/renderView?viewType=clubs" 
+     hx-trigger="load"
+     hx-swap="innerHTML">
+</div>
+
+<!-- _clubs.gsp - dynamic content template -->
+<g:each in="${clubs}" var="club">
+    <!-- Club content here -->
+</g:each>
+```
+
+#### Example 2: Chapter Sections (Refactored from Custom Endpoint)
+
+**❌ OLD WAY (Anti-pattern):**
+```javascript
+// Custom endpoint + JavaScript
+htmx.ajax('GET', '/chapterSections', {
+    values: { 'chapterId': chapterId },
+    target: '#sections-container'
+});
+
+// Custom controller action (33 lines of redundant code)
+def chapterSections() { /* redundant logic */ }
+```
+
+**✅ NEW WAY (Universal Pattern):**
+```html
+<!-- Declarative HTMX -->
+<select hx-get="/renderView?viewType=chapterSections"
+        hx-trigger="change"
+        hx-target="#sections-container"
+        hx-include="[name='chapterId']">
+</select>
+```
+
+```groovy
+// ViewRenderMap entry (reuses existing template)
+'chapterSections': { params ->
+    Long chapterId = params.long('chapterId') 
+    def chapter = universalDataService.getById(Chapter, chapterId)
+    def sections = chapter?.chapterSections ?: []
+    return [template: 'chapterSections', model: [sections: sections, chapter: chapter]]
+}
+```
+
+### Migration Checklist
+
+When refactoring existing code to this pattern:
+
+1. **✅ Identify Custom Endpoints** - Look for controller actions like `chapterSections()`, `loadSomething()`
+2. **✅ Create ViewRenderMap Entry** - Move logic to closure in viewRenderMap
+3. **✅ Replace JavaScript with HTMX** - Use declarative `hx-get="/renderView?viewType=X"`
+4. **✅ Remove Custom Action** - Delete redundant controller method
+5. **✅ Test Template Reuse** - Ensure existing `_templateName.gsp` works with new pattern
+
+### Benefits Achieved
+
+- **50+ lines of JavaScript removed** from verse completion
+- **33 lines of controller code removed** (chapterSections action)
+- **Consistent architecture** across clubs, checkin, students, verse completion
+- **Zero custom endpoints** - everything goes through /renderView
+- **Declarative HTMX** - no manual htmx.ajax() calls needed
+
 ## Development Progress Status
 
 ### ✅ COMPLETED FEATURES
@@ -200,7 +329,7 @@ Track Awana club members' attendance, Bible verse memorization progress, handboo
 
 #### Verse Completion System
 - ✅ **View Structure** - verseCompletion.gsp and _verseCompletion.gsp templates exist
-- ✅ **Chapter Sections Loading** - Dynamic loading of chapter sections via HTMX
+- ✅ **Chapter Sections Loading** - Refactored to use universal pattern instead of custom endpoint
 - ❓ **Completion Recording** - Need to verify submission and buck calculation works
 - ❓ **Parent Verse Integration** - Parent completion tracking
 
@@ -212,14 +341,12 @@ Track Awana club members' attendance, Bible verse memorization progress, handboo
 ### ❌ NOT YET IMPLEMENTED
 
 #### High Priority (Core Workflows)
-1. **Clubs Management System**
-   - Add "Clubs" to bottom navigation (Dashboard | Check-In | Students | Clubs | Store | Reports)
-   - Create `/clubs` page listing all clubs with "Create New Club" button
-   - Club creation form (name, age range, description, meeting day/time)
-   - Individual club management pages at `/clubs/{id}`
-   - Add/remove students from clubs
-   - Assign books to clubs (HangGlider, WingRunner, SkyStormer, etc.)
-   - Club settings and configuration options
+1. **✅ Clubs Management System** - COMPLETED
+   - ✅ Added "Clubs" to bottom navigation
+   - ✅ Created `/clubs` page with dynamic loading
+   - ✅ Club creation form (name, age range, description)
+   - ✅ Individual club management (students, books assignment)
+   - ✅ Club deletion functionality
 
 2. **Attendance Submission & Buck Calculation**
    - Toggle attendance checkboxes (present, uniform, bible, handbook)

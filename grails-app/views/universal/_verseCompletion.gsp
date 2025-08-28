@@ -68,7 +68,13 @@
             <!-- Chapter Selection -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Select Chapter</label>
-                <select id="chapter-select" class="w-full p-3 border border-gray-300 rounded-lg text-lg" onchange="loadChapterSections()">
+                <select name="chapterId" 
+                        id="chapter-select" 
+                        class="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        hx-get="/renderView?viewType=chapterSections"
+                        hx-trigger="change"
+                        hx-target="#sections-container"
+                        hx-swap="innerHTML">
                     <option value="">Choose a chapter...</option>
                     <g:each in="${chapters}" var="chapter">
                         <option value="${chapter.id}">${chapter.name} - ${chapter.sectionVerse}</option>
@@ -79,7 +85,9 @@
             <!-- Section Selection -->
             <div id="section-selection" class="mb-6" style="display: none;">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Chapter Sections</label>
-                <div id="sections-container" class="space-y-3">
+                <div id="sections-container" 
+                     class="space-y-3"
+                     hx-on::after-request="if(event.detail.successful && this.innerHTML.trim() !== '') { document.getElementById('section-selection').style.display = 'block'; }">
                     <!-- Sections will be loaded here -->
                 </div>
             </div>
@@ -228,25 +236,6 @@ function selectStudent(studentId) {
     document.getElementById('verse-completion-form').scrollIntoView({ behavior: 'smooth' });
 }
 
-function loadChapterSections() {
-    const chapterId = document.getElementById('chapter-select').value;
-    if (!chapterId) {
-        document.getElementById('section-selection').style.display = 'none';
-        document.getElementById('completion-types').style.display = 'none';
-        return;
-    }
-    
-    selectedChapterId = chapterId;
-    
-    // HTMX request to load sections
-    htmx.ajax('GET', '/chapterSections', {
-        values: { 'chapterId': chapterId },
-        target: '#sections-container',
-        swap: 'innerHTML'
-    }).then(() => {
-        document.getElementById('section-selection').style.display = 'block';
-    });
-}
 
 function selectSection(sectionId) {
     selectedSectionId = sectionId;

@@ -38,6 +38,17 @@ class BootstrapService {
         }
     }
 
+    def createDefaultAdminUser() {
+        // Create default admin user for production
+        User admin = new User(username: 'admin',
+                password: passwordEncoder.encode('awana2024'),
+                enabled: true)
+        admin.save(failOnError: true)
+        UserRole.create(admin, Role.findByAuthority('ROLE_ADMIN'), true)
+        
+        log.info("Created production admin user: admin/awana2024")
+    }
+
     def createAwanaData() {
         
         // Create Calendar for current Awana year
