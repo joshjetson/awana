@@ -2,7 +2,7 @@ package awana
 
 class UrlMappings {
     static mappings = {
-        // API routes for dynamic domain operations
+        // API routes for later versions of this application
         "/api/universal/$domainName"(controller: "universal", action: "list", method: "GET")
         "/api/universal/$domainName/count"(controller: "universal", action: "count", method: "GET")
         "/api/universal/$domainName"(controller: "universal", action: "save", method: "POST")

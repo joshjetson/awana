@@ -36,7 +36,7 @@ class UniversalController {
             }
 
             return [
-                template: 'familyCheckIn',
+                template: 'checkin/familyCheckIn',
                 model: [
                     household: household,
                     students: students, 
@@ -79,7 +79,7 @@ class UniversalController {
             // If showing filtered results, use the simple student list template
             if (showAll || filter) {
                 return [
-                    template: 'studentList',
+                    template: 'students/studentList',
                     model: [
                         students: students,
                         title: title
@@ -88,7 +88,7 @@ class UniversalController {
             } else {
                 // Otherwise show the full search interface
                 return [
-                    template: 'studentSearch',
+                    template: 'students/studentSearch',
                     model: [
                         clubs: clubs,
                         studentCount: universalDataService.count(Student)
@@ -125,7 +125,7 @@ class UniversalController {
             }
 
             return [
-                template: 'verseCompletion',
+                template: 'books/verseCompletion',
                 model: [
                     students: students,
                     selectedStudent: selectedStudent,
@@ -151,7 +151,7 @@ class UniversalController {
             def attendancePercentage = student.getAttendancePercentage()
 
             return [
-                template: 'studentProgress',
+                template: 'students/studentProgress',
                 model: [
                     student: student,
                     completedSections: completedSections,
@@ -179,7 +179,7 @@ class UniversalController {
             ]
 
             return [
-                template: 'storeTransaction', 
+                template: 'shared/storeTransaction', 
                 model: [
                     student: student,
                     storeItems: storeItems,
@@ -201,7 +201,7 @@ class UniversalController {
             def clubs = universalDataService.list(Club)
 
             return [
-                template: 'clubOverview',
+                template: 'clubs/clubOverview',
                 model: [
                     club: club,
                     clubs: clubs,
@@ -230,7 +230,7 @@ class UniversalController {
             def clubs = universalDataService.list(Club)
 
             return [
-                template: 'attendanceRecord',
+                template: 'checkin/attendanceRecord',
                 model: [
                     selectedDate: selectedDate,
                     club: club,
@@ -242,13 +242,70 @@ class UniversalController {
         'clubs': { params ->
             def clubs = universalDataService.list(Club)
             return [
-                template: 'clubs',
+                template: 'clubs/clubs',
                 model: [clubs: clubs, clubCount: clubs.size()]
             ]
         },
+        'attendance': { params ->
+            def calendar = Calendar.findByDescription("Awana 2024-2025 School Year")
+            def clubs = universalDataService.list(Club)
+            def totalStudents = universalDataService.count(Student)
+            
+            return [
+                template: 'attendance/attendance',
+                model: [
+                    calendar: calendar,
+                    clubs: clubs,
+                    totalStudents: totalStudents
+                ]
+            ]
+        },
+        'calendarEvents': { params ->
+            def startDate = Date.parse("yyyy-MM-dd", params.start)
+            def endDate = Date.parse("yyyy-MM-dd", params.end)
+            
+            // Generate sample events for now (will be real data later)
+            def events = []
+            
+            // Sample recurring meetings (every Wednesday)
+            def cal = java.util.Calendar.getInstance()
+            cal.setTime(startDate)
+            
+            while (cal.getTime() <= endDate) {
+                if (cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.WEDNESDAY) {
+                    def meetingDate = new Date(cal.getTimeInMillis())
+                    
+                    // Calculate attendance rate (sample data)
+                    def attendanceRate = Math.random() * 40 + 60 // 60-100%
+                    
+                    events << [
+                        title: "Awana Meeting (${Math.round(attendanceRate)}%)",
+                        start: meetingDate.format("yyyy-MM-dd"),
+                        type: "meeting",
+                        attendanceRate: attendanceRate,
+                        className: attendanceRate >= 90 ? "awana-event-high" : 
+                                 attendanceRate >= 70 ? "awana-event-medium" : "awana-event-low"
+                    ]
+                }
+                cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+            }
+            
+            // Add some holidays
+            events << [
+                title: "Christmas Break",
+                start: "2024-12-25",
+                type: "holiday",
+                className: "awana-event-holiday"
+            ]
+            
+            render(contentType: "application/json") {
+                [events: events]
+            }
+            return false // Don't render template
+        },
         'clubCreateForm': { params ->
             return [
-                template: 'clubCreateForm',
+                template: 'clubs/clubCreateForm',
                 model: [:]
             ]
         },
@@ -256,7 +313,7 @@ class UniversalController {
             Long clubId = params.long('clubId')
             def club = universalDataService.getById(Club, clubId)
             return [
-                template: 'clubEdit',
+                template: 'clubs/clubEdit',
                 model: [club: club]
             ]
         },
@@ -265,7 +322,7 @@ class UniversalController {
             def club = universalDataService.getById(Club, clubId)
             def allStudents = universalDataService.list(Student)
             return [
-                template: 'clubStudents',
+                template: 'clubs/clubStudents',
                 model: [club: club, allStudents: allStudents]
             ]
         },
@@ -274,14 +331,14 @@ class UniversalController {
             def club = universalDataService.getById(Club, clubId)
             def allBooks = universalDataService.list(Book)
             return [
-                template: 'clubBooks',
+                template: 'clubs/clubBooks',
                 model: [club: club, allBooks: allBooks]
             ]
         },
         'checkin': { params ->
             def households = universalDataService.list(Household)
             return [
-                template: 'checkin',
+                template: 'checkin/checkin',
                 model: [households: households]
             ]
         },
@@ -289,7 +346,7 @@ class UniversalController {
             def clubs = universalDataService.list(Club)
             def studentCount = universalDataService.count(Student)
             return [
-                template: 'students',
+                template: 'students/students',
                 model: [clubs: clubs, studentCount: studentCount]
             ]
         },
@@ -298,7 +355,7 @@ class UniversalController {
             def chapter = universalDataService.getById(Chapter, chapterId)
             def sections = chapter?.chapterSections ?: []
             return [
-                template: 'chapterSections',
+                template: 'books/chapterSections',
                 model: [sections: sections, chapter: chapter]
             ]
         }
@@ -367,7 +424,15 @@ class UniversalController {
         [:]
     }
 
-
+    /**
+     * GET /attendance
+     * Attendance tracking and calendar management page
+     */
+    def attendance() {
+        // This just renders the attendance.gsp page skeleton
+        // The actual content is loaded via /renderView?viewType=attendance
+        [:]
+    }
 
     /**
      * GET /store
@@ -439,7 +504,7 @@ class UniversalController {
                 
                 if (isHtmxRequest()) {
                     // Render template fragment for HTMX
-                    render(template: 'listTable', model: [result: result, domainName: domainName])
+                    render(template: 'shared/listTable', model: [result: result, domainName: domainName])
                     return
                 } else if (isJsonRequest()) {
                     render result as JSON
@@ -452,7 +517,7 @@ class UniversalController {
                 
                 if (isHtmxRequest()) {
                     // Render template fragment for HTMX
-                    render(template: 'listItems', model: [instances: instances, domainName: domainName])
+                    render(template: 'shared/listItems', model: [instances: instances, domainName: domainName])
                     return
                 } else if (isJsonRequest()) {
                     render instances as JSON
@@ -522,7 +587,7 @@ class UniversalController {
             if (instance) {
                 if (isHtmxRequest()) {
                     // Render success template fragment for HTMX
-                    render(template: 'createSuccess', model: [instance: instance, domainName: domainName])
+                    render(template: 'shared/createSuccess', model: [instance: instance, domainName: domainName])
                     return
                 } else if (isJsonRequest()) {
                     render status: 201, contentType: 'application/json', text: (instance as JSON).toString()
@@ -532,7 +597,7 @@ class UniversalController {
                 }
             } else {
                 if (isHtmxRequest()) {
-                    render status: 400, template: 'createError', model: [domainName: domainName, message: "Failed to create ${domainName}"]
+                    render status: 400, template: 'shared/createError', model: [domainName: domainName, message: "Failed to create ${domainName}"]
                     return
                 } else if (isJsonRequest()) {
                     render status: 400, text: "Failed to create ${domainName}"

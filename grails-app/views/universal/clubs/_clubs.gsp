@@ -50,7 +50,7 @@ Loaded via: /renderView?viewType=clubs
             <div id="clubs-list" class="space-y-4">
                 <g:if test="${clubs}">
                     <g:each in="${clubs}" var="club">
-                        <g:render template="clubsList" model="[club: club]"/>
+                        <g:render template="clubs/clubsList" model="[club: club]"/>
                     </g:each>
                 </g:if>
                 <g:else>

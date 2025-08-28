@@ -25,6 +25,9 @@
     <!-- HTMX loaded locally from assets -->
     <asset:javascript src="htmx.min.js"/>
     
+    <!-- FullCalendar library for attendance calendar (offline) -->
+    <asset:javascript src="fullcalendar.min.js"/>
+    
     <!-- Custom animations for notifications -->
     <style>
         .animate-fade-in {
