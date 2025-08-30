@@ -13,6 +13,7 @@ class Book {
         name blank: false, nullable: false
         coverImage nullable: true
         isPrimary nullable: false
+        club nullable: true
     }
 
     static mapping = {

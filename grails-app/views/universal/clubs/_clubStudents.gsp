@@ -6,7 +6,7 @@ Loaded via: /renderView?viewType=clubStudents&clubId=123
 <div class="bg-white rounded-xl shadow-lg p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h2 class="text-xl font-bold text-gray-900">Manage Students</h2>
+            <h2 class="text-xl font-bold text-gray-900">Manage Students HERE</h2>
             <p class="text-sm text-gray-600">${club?.name} - ${club?.ageRange}</p>
         </div>
         <button onclick="this.closest('#dynamic-content').style.display = 'none'" 
@@ -29,10 +29,10 @@ Loaded via: /renderView?viewType=clubStudents&clubId=123
                                 <div class="font-medium text-gray-900">${student.firstName} ${student.lastName}</div>
                                 <div class="text-sm text-gray-600">${student.awanaBucks} bucks</div>
                             </div>
-                            <button hx-post="/update?domainName=Student&id=${student.id}"
-                                    hx-vals='{"club": null}'
-                                    hx-target="closest div"
-                                    hx-swap="delete"
+                            <button type="button"
+                                    hx-put="/api/universal/Student/${student.id}?domainName=Student&viewType=clubStudents&refreshClubId=${club.id}&club.id="
+                                    hx-target="#dynamic-content"
+                                    hx-swap="innerHTML"
                                     class="text-red-600 hover:text-red-700 text-sm">
                                 Remove
                             </button>
@@ -59,10 +59,9 @@ Loaded via: /renderView?viewType=clubStudents&clubId=123
                                 Current club: ${student.club?.name ?: 'None'}
                             </div>
                         </div>
-                        <button hx-post="/update?domainName=Student&id=${student.id}"
-                                hx-vals='{"club": "${club.id}"}'
-                                hx-target="closest div"
-                                hx-swap="delete"
+                        <button hx-put="/api/universal/Student/${student.id}?domainName=Student&viewType=clubStudents&refreshClubId=${club.id}&club.id=${club.id}"
+                                hx-target="#dynamic-content"
+                                hx-swap="innerHTML"
                                 class="text-blue-600 hover:text-blue-700 text-sm">
                             Add
                         </button>

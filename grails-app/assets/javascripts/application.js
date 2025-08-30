@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // PWA-optimized touch handling
     document.body.style.touchAction = 'manipulation';
+    
+    // Success toast notification handler
+    document.body.addEventListener('showSuccessToast', function(evt) {
+        const data = evt.detail;
+        showSuccessToast(data.message || 'Operation completed successfully');
+    });
 });
 
 // ====================================================================
@@ -82,4 +88,43 @@ function showClubOverview(clubId, clubName) {
             dynamicContent.scrollIntoView({ behavior: 'smooth' });
         }
     });
+}
+
+// Success toast notification function
+function showSuccessToast(message) {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2 transform transition-all duration-300 translate-x-full opacity-0';
+    toast.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span>${message}</span>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 10);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
 }

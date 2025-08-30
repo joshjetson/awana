@@ -318,8 +318,11 @@ class UniversalController {
             ]
         },
         'clubStudents': { params ->
-            Long clubId = params.long('clubId')
+            Long clubId = params.long('refreshClubId') ?: params.long('clubId')
             def club = universalDataService.getById(Club, clubId)
+            if (club) {
+                club.refresh() // Refresh to get updated associations
+            }
             def allStudents = universalDataService.list(Student)
             return [
                 template: 'clubs/clubStudents',
@@ -327,8 +330,11 @@ class UniversalController {
             ]
         },
         'clubBooks': { params ->
-            Long clubId = params.long('clubId')
+            Long clubId = params.long('refreshClubId') ?: params.long('clubId')
             def club = universalDataService.getById(Club, clubId)
+            if (club) {
+                club.refresh() // Refresh to get updated associations
+            }
             def allBooks = universalDataService.list(Book)
             return [
                 template: 'clubs/clubBooks',
@@ -357,6 +363,54 @@ class UniversalController {
             return [
                 template: 'books/chapterSections',
                 model: [sections: sections, chapter: chapter]
+            ]
+        },
+        'createHousehold': { params ->
+            return [
+                template: 'students/createHousehold',
+                model: [:]
+            ]
+        },
+        'manageHouseholds': { params ->
+            def households = universalDataService.list(Household).sort { it.name }
+            return [
+                template: 'students/manageHouseholds',
+                model: [households: households]
+            ]
+        },
+        'editHousehold': { params ->
+            Long householdId = params.long('householdId')
+            def household = universalDataService.getById(Household, householdId)
+            if (!household) {
+                throw new IllegalArgumentException("Household not found")
+            }
+            return [
+                template: 'students/editHousehold',
+                model: [household: household]
+            ]
+        },
+        'addStudentToHousehold': { params ->
+            Long householdId = params.long('householdId')
+            def household = universalDataService.getById(Household, householdId)
+            def clubs = universalDataService.list(Club)
+            if (!household) {
+                throw new IllegalArgumentException("Household not found")
+            }
+            return [
+                template: 'students/addStudentToHousehold',
+                model: [household: household, clubs: clubs]
+            ]
+        },
+        'editStudent': { params ->
+            Long studentId = params.long('studentId')
+            def student = universalDataService.getById(Student, studentId)
+            def clubs = universalDataService.list(Club)
+            if (!student) {
+                throw new IllegalArgumentException("Student not found")
+            }
+            return [
+                template: 'students/addStudentToHousehold',
+                model: [student: student, household: student.household, clubs: clubs]
             ]
         }
     ]
@@ -574,6 +628,7 @@ class UniversalController {
      */
     def save() {
         String domainName = params.domainName
+        String viewType = params.viewType   // <-- front end can pass this
         Class domainClass = getDomainClass(domainName)
         
         if (!domainClass) {
@@ -586,8 +641,23 @@ class UniversalController {
             
             if (instance) {
                 if (isHtmxRequest()) {
-                    // Render success template fragment for HTMX
-                    render(template: 'shared/createSuccess', model: [instance: instance, domainName: domainName])
+                    if (viewType && viewRenderMap.containsKey(viewType)) {
+                        def viewClosure = viewRenderMap[viewType]
+
+                        // make sure required parameters are available for closures
+                        if (instance instanceof Club) {
+                            params.clubId = instance.id
+                        }
+
+                        def view = viewClosure(params)
+                        // Add success message to response headers for HTMX
+                        response.setHeader('HX-Trigger', 'showSuccessToast')
+                        response.setHeader('HX-Trigger-Data', '{"message": "' + domainName + ' created successfully"}')
+                        render template: view.template, model: view.model
+                        return
+                    }
+                    // fallback if no view requested
+                    render status: 201, text: "Created successfully"
                     return
                 } else if (isJsonRequest()) {
                     render status: 201, contentType: 'application/json', text: (instance as JSON).toString()
@@ -619,8 +689,11 @@ class UniversalController {
     def update() {
         String domainName = params.domainName
         Long id = params.long('id')
+        String viewType = params.viewType   // <-- front end can pass this
+        println "${viewType} SHOULD BE THE VIEWTYPE"
+
         Class domainClass = getDomainClass(domainName)
-        
+
         if (!domainClass || !id) {
             render status: 404, text: "Domain class '${domainName}' not found or invalid ID"
             return
@@ -628,11 +701,28 @@ class UniversalController {
 
         try {
             def instance = universalDataService.update(domainClass, id, params)
-            
+
             if (instance) {
                 if (isHtmxRequest()) {
-                    // Render updated template fragment for HTMX
-                    render(template: 'updateSuccess', model: [instance: instance, domainName: domainName])
+                    if (viewType && viewRenderMap.containsKey(viewType)) {
+                        def viewClosure = viewRenderMap[viewType]
+
+                        // make sure householdId is available for closures that expect it
+                        if (instance instanceof Household) {
+                            params.householdId = instance.id
+                        } else if (instance instanceof Student && viewType == 'editHousehold') {
+                            params.householdId = instance.household?.id
+                        }
+
+                        def view = viewClosure(params)
+                        // Add success message to response headers for HTMX
+                        response.setHeader('HX-Trigger', 'showSuccessToast')
+                        response.setHeader('HX-Trigger-Data', '{"message": "' + domainName + ' updated successfully"}')
+                        render template: view.template, model: view.model
+                        return
+                    }
+                    // fallback if no view requested
+                    render status: 200, text: "Success"
                     return
                 } else if (isJsonRequest()) {
                     render instance as JSON
@@ -641,21 +731,14 @@ class UniversalController {
                     redirect action: 'show', params: [domainName: domainName, id: id]
                 }
             } else {
-                if (isHtmxRequest()) {
-                    render status: 400, template: 'updateError', model: [domainName: domainName, message: "Failed to update ${domainName}"]
-                    return
-                } else if (isJsonRequest()) {
-                    render status: 400, text: "Failed to update ${domainName}"
-                } else {
-                    flash.error = "Failed to update ${domainName} or not found"
-                    redirect action: 'list', params: [domainName: domainName]
-                }
+                render status: 400, text: "Failed to update ${domainName}"
             }
         } catch (Exception e) {
             log.error("Error updating ${domainName} ${id}: ${e.message}")
             render status: 500, text: "Error updating ${domainName}"
         }
     }
+
 
     /**
      * DELETE /universal/{domainName}/{id}

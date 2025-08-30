@@ -12,7 +12,7 @@ class Household {
 
     static constraints = {
         name blank: false, nullable: false
-        qrCode blank: false, nullable: false, unique: true
+        qrCode blank: false, nullable: true, unique: true
         address nullable: true
         phoneNumber nullable: true
         email nullable: true, email: true

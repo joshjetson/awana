@@ -18,25 +18,27 @@ Parameters:
 <!-- Fixed Bottom Navigation -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50 safe-area-pb">
     <div class="max-w-screen-xl mx-auto px-4">
-        <div class="flex justify-around items-center h-16">
+        <div class="flex justify-around items-center h-20">
             <g:each in="${navItems}" var="item">
                 <g:set var="isActive" value="${currentPage == item.id}"/>
-                <g:set var="activeClass" value="${isActive ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}"/>
+                <g:set var="activeClass" value="${isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}"/>
                 
                 <a href="${item.href}" 
-                   class="flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors min-w-[60px] ${activeClass}">
+                   class="flex flex-col items-center justify-center px-4 py-3 rounded-lg transition-colors min-w-[80px] ${activeClass}">
                     
                     <!-- Icon -->
-                    <div class="mb-1">
-                        ${raw(item.icon)}
+                    <div class="mb-2">
+                        <div class="w-10 h-10">
+                            ${raw(item.icon.replace('w-6 h-6', 'w-10 h-10'))}
+                        </div>
                     </div>
                     
                     <!-- Label -->
-                    <span class="text-xs font-medium">${item.label}</span>
+                    <span class="text-sm font-semibold">${item.label}</span>
                     
                     <!-- Active indicator -->
                     <g:if test="${isActive}">
-                        <div class="w-1 h-1 bg-blue-600 rounded-full mt-1"></div>
+                        <div class="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
                     </g:if>
                 </a>
             </g:each>
@@ -52,12 +54,12 @@ Parameters:
     
     /* Ensure main content has bottom padding when nav is present */
     body.has-bottom-nav {
-        padding-bottom: 80px; /* 64px nav height + 16px extra padding */
+        padding-bottom: 96px; /* 80px nav height + 16px extra padding */
     }
     
     @media (max-width: 640px) {
         body.has-bottom-nav {
-            padding-bottom: 84px; /* Slightly more on mobile */
+            padding-bottom: 100px; /* Slightly more on mobile */
         }
     }
 </style>

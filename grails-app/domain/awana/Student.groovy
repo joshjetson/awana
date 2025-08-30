@@ -20,7 +20,7 @@ class Student {
         awanaBucks nullable: false, min: 0
         isActive nullable: false
         household nullable: false
-        club nullable: false
+        club nullable: true
     }
 
     static mapping = {
