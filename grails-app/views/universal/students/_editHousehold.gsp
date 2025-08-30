@@ -28,7 +28,7 @@
             </div>
         </div>
     </div>
-    <form hx-put="/api/universal/Household/${household.id}?domainName=Household&viewType=editHousehold"
+    <form hx-put="/api/universal/Household/${household.id}?domainName=Household&viewType=editHousehold&refreshHouseholdId=${household.id}"
           hx-target="#main-content-area"
           hx-swap="innerHTML"
           hx-indicator="#update-indicator"

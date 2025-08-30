@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <form <g:if test="${student}">hx-put="/api/universal/Student/${student.id}?domainName=Student&viewType=editStudent&studentId=${student.id}"</g:if><g:else>hx-post="/api/universal/Student"</g:else>
+    <form <g:if test="${student}">hx-put="/api/universal/Student/${student.id}?domainName=Student&viewType=editStudent&studentId=${student.id}&refreshHouseholdId=${household.id}"</g:if><g:else>hx-post="/api/universal/Student?domainName=Student&viewType=editHousehold&refreshHouseholdId=${household.id}"</g:else>
           hx-target="#main-content-area"
           hx-swap="innerHTML"
           hx-indicator="#save-indicator"

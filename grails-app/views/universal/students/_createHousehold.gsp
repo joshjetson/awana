@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form hx-post="/api/universal/Household"
+    <form hx-post="/api/universal/Household?domainName=Household&viewType=manageHouseholds"
           hx-target="#main-content-area"
           hx-swap="innerHTML"
           hx-indicator="#save-indicator"
@@ -113,7 +113,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
                             <input type="text" 
-                                   name="children[0].firstName" 
+                                   name="students[0].firstName" 
                                    required
                                    placeholder="Enter first name"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
@@ -123,7 +123,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
                             <input type="text" 
-                                   name="children[0].lastName" 
+                                   name="students[0].lastName" 
                                    required
                                    placeholder="Enter last name"
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
@@ -133,7 +133,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
                             <input type="date" 
-                                   name="children[0].dateOfBirth" 
+                                   name="students[0].dateOfBirth" 
                                    required
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                         </div>
@@ -196,15 +196,15 @@ function addChildForm() {
         '<div class="grid md:grid-cols-3 gap-3">' +
             '<div>' +
                 '<label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>' +
-                '<input type="text" name="children[' + childIndex + '].firstName" required placeholder="Enter first name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
+                '<input type="text" name="students[' + childIndex + '].firstName" required placeholder="Enter first name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
             '</div>' +
             '<div>' +
                 '<label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>' +
-                '<input type="text" name="children[' + childIndex + '].lastName" required placeholder="Enter last name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
+                '<input type="text" name="students[' + childIndex + '].lastName" required placeholder="Enter last name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
             '</div>' +
             '<div>' +
                 '<label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>' +
-                '<input type="date" name="children[' + childIndex + '].dateOfBirth" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
+                '<input type="date" name="students[' + childIndex + '].dateOfBirth" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">' +
             '</div>' +
         '</div>';
     

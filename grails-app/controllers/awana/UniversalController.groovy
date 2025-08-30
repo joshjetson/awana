@@ -379,7 +379,7 @@ class UniversalController {
             ]
         },
         'editHousehold': { params ->
-            Long householdId = params.long('householdId')
+            Long householdId = params.long('refreshHouseholdId') ?: params.long('householdId')
             def household = universalDataService.getById(Household, householdId)
             if (!household) {
                 throw new IllegalArgumentException("Household not found")
@@ -390,7 +390,7 @@ class UniversalController {
             ]
         },
         'addStudentToHousehold': { params ->
-            Long householdId = params.long('householdId')
+            Long householdId = params.long('refreshHouseholdId') ?: params.long('householdId')
             def household = universalDataService.getById(Household, householdId)
             def clubs = universalDataService.list(Club)
             if (!household) {
@@ -639,6 +639,7 @@ class UniversalController {
         try {
             def instance = universalDataService.save(domainClass, params)
             
+            
             if (instance) {
                 if (isHtmxRequest()) {
                     if (viewType && viewRenderMap.containsKey(viewType)) {
@@ -706,14 +707,6 @@ class UniversalController {
                 if (isHtmxRequest()) {
                     if (viewType && viewRenderMap.containsKey(viewType)) {
                         def viewClosure = viewRenderMap[viewType]
-
-                        // make sure householdId is available for closures that expect it
-                        if (instance instanceof Household) {
-                            params.householdId = instance.id
-                        } else if (instance instanceof Student && viewType == 'editHousehold') {
-                            params.householdId = instance.household?.id
-                        }
-
                         def view = viewClosure(params)
                         // Add success message to response headers for HTMX
                         response.setHeader('HX-Trigger', 'showSuccessToast')
