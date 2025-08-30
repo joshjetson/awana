@@ -6,9 +6,9 @@ Usage: Loaded via HTMX when user clicks "Add Club" button
 <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-4">
     <h3 class="text-lg font-semibold text-blue-900 mb-4">Create New Club</h3>
     
-    <form hx-post="/save?domainName=Club" 
-          hx-headers='{"Content-Type": "application/x-www-form-urlencoded"}'
-          hx-on::after-request="if(event.detail.successful) { this.closest('.bg-blue-50').remove(); htmx.ajax('GET', '/renderView?viewType=clubs', {target: '#clubs-page-content', swap: 'innerHTML'}); }"
+    <form hx-post="/api/universal/Club?domainName=Club&viewType=clubs" 
+          hx-target="#clubs-page-content"
+          hx-swap="innerHTML"
           class="space-y-4">
         
         <div class="grid md:grid-cols-2 gap-4">

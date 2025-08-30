@@ -645,10 +645,6 @@ class UniversalController {
                     if (viewType && viewRenderMap.containsKey(viewType)) {
                         def viewClosure = viewRenderMap[viewType]
 
-                        // make sure required parameters are available for closures
-                        if (instance instanceof Club) {
-                            params.clubId = instance.id
-                        }
 
                         def view = viewClosure(params)
                         // Add success message to response headers for HTMX
