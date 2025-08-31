@@ -31,9 +31,17 @@ Loaded via: /renderView?viewType=calendarSetup
 
         <!-- Calendar Setup Form -->
         <div class="bg-white rounded-xl shadow-lg p-6">
+            
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Create Awana Calendar</h2>
+                    <h2 class="text-2xl font-bold text-gray-900">
+                        <g:if test="${calendar}">
+                            Update Awana Calendar (ID: ${calendar.id})
+                        </g:if>
+                        <g:else>
+                            Create Awana Calendar
+                        </g:else>
+                    </h2>
                     <p class="text-gray-600">Set up the schedule for your Awana season</p>
                 </div>
                 <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
@@ -43,11 +51,16 @@ Loaded via: /renderView?viewType=calendarSetup
                 </div>
             </div>
 
-            <form hx-post="/api/universal/Calendar?domainName=Calendar&viewType=attendance"
+            <form <g:if test="${calendar}">hx-put="/api/universal/Calendar/${calendar.id}?domainName=Calendar&viewType=attendance"</g:if><g:else>hx-post="/api/universal/Calendar?domainName=Calendar&viewType=attendance"</g:else>
                   hx-target="#attendance-page-content"
                   hx-swap="innerHTML"
                   hx-indicator="#save-indicator"
                   class="space-y-6">
+                
+                <!-- Hidden ID field for updates -->
+                <g:if test="${calendar}">
+                    <input type="hidden" name="id" value="${calendar.id}">
+                </g:if>
 
                 <!-- Season Dates -->
                 <div class="bg-blue-50 rounded-lg p-4">
@@ -60,6 +73,7 @@ Loaded via: /renderView?viewType=calendarSetup
                             <input type="date" 
                                    id="startDate" 
                                    name="startDate" 
+                                   value="<g:formatDate format='yyyy-MM-dd' date='${calendar?.startDate}' />"
                                    required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                             <p class="text-xs text-gray-500 mt-1">First week of Awana meetings</p>
@@ -71,6 +85,7 @@ Loaded via: /renderView?viewType=calendarSetup
                             <input type="date" 
                                    id="endDate" 
                                    name="endDate" 
+                                   value="<g:formatDate format='yyyy-MM-dd' date='${calendar?.endDate}' />"
                                    required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                             <p class="text-xs text-gray-500 mt-1">Last week of Awana meetings</p>
@@ -91,13 +106,13 @@ Loaded via: /renderView?viewType=calendarSetup
                                     required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                                 <option value="">Select meeting day...</option>
-                                <option value="Sunday">Sunday</option>
-                                <option value="Monday">Monday</option>
-                                <option value="Tuesday">Tuesday</option>
-                                <option value="Wednesday">Wednesday</option>
-                                <option value="Thursday">Thursday</option>
-                                <option value="Friday">Friday</option>
-                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday" ${calendar?.dayOfWeek == 'Sunday' ? 'selected' : ''}>Sunday</option>
+                                <option value="Monday" ${calendar?.dayOfWeek == 'Monday' ? 'selected' : ''}>Monday</option>
+                                <option value="Tuesday" ${calendar?.dayOfWeek == 'Tuesday' ? 'selected' : ''}>Tuesday</option>
+                                <option value="Wednesday" ${calendar?.dayOfWeek == 'Wednesday' ? 'selected' : ''}>Wednesday</option>
+                                <option value="Thursday" ${calendar?.dayOfWeek == 'Thursday' ? 'selected' : ''}>Thursday</option>
+                                <option value="Friday" ${calendar?.dayOfWeek == 'Friday' ? 'selected' : ''}>Friday</option>
+                                <option value="Saturday" ${calendar?.dayOfWeek == 'Saturday' ? 'selected' : ''}>Saturday</option>
                             </select>
                         </div>
 
@@ -109,6 +124,7 @@ Loaded via: /renderView?viewType=calendarSetup
                                 <input type="time" 
                                        id="startTime" 
                                        name="startTime" 
+                                       value="${calendar?.startTime ?: ''}"
                                        required
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                             </div>
@@ -119,6 +135,7 @@ Loaded via: /renderView?viewType=calendarSetup
                                 <input type="time" 
                                        id="endTime" 
                                        name="endTime" 
+                                       value="${calendar?.endTime ?: ''}"
                                        required
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                             </div>
@@ -177,7 +194,12 @@ Loaded via: /renderView?viewType=calendarSetup
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                             </svg>
-                            Create Calendar
+                            <g:if test="${calendar}">
+                                Update Calendar
+                            </g:if>
+                            <g:else>
+                                Create Calendar
+                            </g:else>
                         </button>
                     </div>
                 </div>

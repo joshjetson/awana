@@ -263,7 +263,7 @@ class UniversalController {
             ]
         },
         'attendance': { params ->
-            def calendar = Calendar.list()?.find() // Get the first calendar if any exists
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find() // Get the most recent calendar
             def clubs = universalDataService.list(Club)
             def totalStudents = universalDataService.count(Student)
             
@@ -277,9 +277,13 @@ class UniversalController {
             ]
         },
         'calendarSetup': { params ->
+            // Always get the most recent calendar for editing
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
+            log.info("CalendarSetup - Found calendar: ${calendar != null}, ID: ${calendar?.id}")
+            
             return [
                 template: 'attendance/calendarSetup',
-                model: [:]
+                model: [calendar: calendar]
             ]
         },
         'calendarEvents': { params ->
@@ -296,8 +300,8 @@ class UniversalController {
             
             def events = []
             
-            // Get the actual Calendar object
-            def calendar = Calendar.list()?.find()
+            // Get the most recent Calendar object
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
             
             if (calendar) {
                 // Map day names to Calendar constants
@@ -316,6 +320,7 @@ class UniversalController {
                     def cal = java.util.Calendar.getInstance()
                     cal.setTime(startDate)
                     
+                    // Loop until we go past the end date to ensure we don't miss the last meeting
                     while (cal.getTime() <= endDate) {
                         if (cal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
                             def meetingDate = new Date(cal.getTimeInMillis())

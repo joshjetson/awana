@@ -22,14 +22,21 @@ Loaded via: /renderView?viewType=attendance
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold">Awana Calendar</h2>
-                    <button hx-get="/renderView?viewType=calendarSetup"
+                    <button <g:if test="${calendar}">hx-get="/renderView?viewType=calendarSetup&calendarId=${calendar.id}"</g:if><g:else>hx-get="/renderView?viewType=calendarSetup"</g:else>
                             hx-target="#attendance-page-content"
                             hx-swap="innerHTML"
                             class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
-                        <span>Setup Calendar</span>
+                        <span>
+                            <g:if test="${calendar}">
+                                Update Calendar
+                            </g:if>
+                            <g:else>
+                                Setup Calendar
+                            </g:else>
+                        </span>
                     </button>
                 </div>
                 
@@ -51,7 +58,14 @@ Loaded via: /renderView?viewType=attendance
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                             </svg>
                         </button>
-                        <span id="calendar-title" class="text-lg font-semibold min-w-[140px] text-center">March 2024</span>
+                        <span id="calendar-title" class="text-lg font-semibold min-w-[140px] text-center">
+                            <g:if test="${calendar}">
+                                <g:formatDate format="MMMM yyyy" date="${calendar.startDate}"/>
+                            </g:if>
+                            <g:else>
+                                Calendar
+                            </g:else>
+                        </span>
                         <button data-calendar-next class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -255,6 +269,21 @@ Loaded via: /renderView?viewType=attendance
             // Theme and styling
             themeSystem: 'standard',
             height: 'auto',
+            
+            <g:if test="${calendar}">
+            // Season date constraints
+            validRange: {
+                start: '<g:formatDate format="yyyy-MM-dd" date="${calendar.startDate}"/>',
+                end: '<g:formatDate format="yyyy-MM-dd" date="${calendar.endDate}"/>'
+            },
+            initialDate: '<g:formatDate format="yyyy-MM-dd" date="${calendar.startDate}"/>',
+            
+            // Time settings for agenda views
+            <g:if test="${calendar.startTime && calendar.endTime}">
+            slotMinTime: '${calendar.startTime}',
+            slotMaxTime: '${calendar.endTime}',
+            </g:if>
+            </g:if>
 
             // Event sources - load from HTMX endpoints
             events: function(info, successCallback, failureCallback) {
@@ -273,6 +302,17 @@ Loaded via: /renderView?viewType=attendance
                         failureCallback(error);
                     });
             },
+            
+            <g:if test="${calendar}">
+            // Highlight meeting days
+            dayCellClassNames: function(arg) {
+                const dayOfWeek = arg.date.toLocaleDateString('en-US', { weekday: 'long' });
+                if (dayOfWeek === '${calendar.dayOfWeek}') {
+                    return ['awana-meeting-day'];
+                }
+                return [];
+            },
+            </g:if>
 
             // Event styling
             eventClassNames: function(arg) {
@@ -295,9 +335,10 @@ Loaded via: /renderView?viewType=attendance
                 showDateActions(info.date);
             },
 
-            // View change handler - updates metrics sidebar
+            // View change handler - updates metrics sidebar and title
             datesSet: function(dateInfo) {
                 updateMetricsSidebar(dateInfo);
+                updateCalendarTitle(dateInfo);
             }
         });
 
@@ -364,6 +405,15 @@ Loaded via: /renderView?viewType=attendance
         console.log('Update metrics for date range:', dateInfo);
         // TODO: Load metrics via HTMX based on current date range
     }
+    
+    function updateCalendarTitle(dateInfo) {
+        const titleElement = document.getElementById('calendar-title');
+        if (titleElement && dateInfo.start) {
+            const date = new Date(dateInfo.start);
+            const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+            titleElement.textContent = formatter.format(date);
+        }
+    }
 </script>
 
 
@@ -402,5 +452,15 @@ Loaded via: /renderView?viewType=attendance
 
 .fc-daygrid-event-harness {
     margin: 1px !important;
+}
+
+/* Highlight meeting days */
+.awana-meeting-day {
+    background-color: rgb(239 246 255) !important; /* blue-50 */
+    border: 1px solid rgb(147 197 253) !important; /* blue-300 */
+}
+
+.awana-meeting-day:hover {
+    background-color: rgb(219 234 254) !important; /* blue-100 */
 }
 </style>
