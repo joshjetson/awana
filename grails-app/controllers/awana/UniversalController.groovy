@@ -3,11 +3,27 @@ package awana
 import grails.converters.JSON
 import grails.plugin.springsecurity.annotation.Secured
 import grails.util.GrailsNameUtils
+import groovy.time.TimeCategory
+import java.text.SimpleDateFormat
 
 @Secured(['ROLE_USER', 'ROLE_ADMIN'])
 class UniversalController {
 
     UniversalDataService universalDataService
+    
+    def parseDate(String value) {
+        try {
+            if (value.contains('T')) {
+                // ISO 8601 with offset, e.g. 2025-07-27T00:00:00-05:00
+                return javax.xml.bind.DatatypeConverter.parseDateTime(value).time
+            } else {
+                return new SimpleDateFormat("yyyy-MM-dd").parse(value)
+            }
+        } catch (Exception e) {
+            log.error("Date parse failed: ${value}", e)
+            return null
+        }
+    }
 
     /**
      * Dynamic view rendering map using closures
@@ -247,7 +263,7 @@ class UniversalController {
             ]
         },
         'attendance': { params ->
-            def calendar = Calendar.findByDescription("Awana 2024-2025 School Year")
+            def calendar = Calendar.list()?.find() // Get the first calendar if any exists
             def clubs = universalDataService.list(Club)
             def totalStudents = universalDataService.count(Student)
             
@@ -260,48 +276,79 @@ class UniversalController {
                 ]
             ]
         },
+        'calendarSetup': { params ->
+            return [
+                template: 'attendance/calendarSetup',
+                model: [:]
+            ]
+        },
         'calendarEvents': { params ->
-            def startDate = Date.parse("yyyy-MM-dd", params.start)
-            def endDate = Date.parse("yyyy-MM-dd", params.end)
+            // Parse date strings from FullCalendar
+            def startDate = parseDate(params.start)
+            def endDate = parseDate(params.end)
             
-            // Generate sample events for now (will be real data later)
+            if (!startDate || !endDate) {
+                use(TimeCategory) {
+                    startDate = startDate ?: (new Date() - 30.days)
+                    endDate = endDate ?: (new Date() + 30.days)
+                }
+            }
+            
             def events = []
             
-            // Sample recurring meetings (every Wednesday)
-            def cal = java.util.Calendar.getInstance()
-            cal.setTime(startDate)
+            // Get the actual Calendar object
+            def calendar = Calendar.list()?.find()
             
-            while (cal.getTime() <= endDate) {
-                if (cal.get(java.util.Calendar.DAY_OF_WEEK) == java.util.Calendar.WEDNESDAY) {
-                    def meetingDate = new Date(cal.getTimeInMillis())
+            if (calendar) {
+                // Map day names to Calendar constants
+                def dayMap = [
+                    'Sunday': java.util.Calendar.SUNDAY,
+                    'Monday': java.util.Calendar.MONDAY,
+                    'Tuesday': java.util.Calendar.TUESDAY,
+                    'Wednesday': java.util.Calendar.WEDNESDAY,
+                    'Thursday': java.util.Calendar.THURSDAY,
+                    'Friday': java.util.Calendar.FRIDAY,
+                    'Saturday': java.util.Calendar.SATURDAY
+                ]
+                
+                def meetingDay = dayMap[calendar.dayOfWeek]
+                if (meetingDay) {
+                    def cal = java.util.Calendar.getInstance()
+                    cal.setTime(startDate)
                     
-                    // Calculate attendance rate (sample data)
-                    def attendanceRate = Math.random() * 40 + 60 // 60-100%
-                    
-                    events << [
-                        title: "Awana Meeting (${Math.round(attendanceRate)}%)",
-                        start: meetingDate.format("yyyy-MM-dd"),
-                        type: "meeting",
-                        attendanceRate: attendanceRate,
-                        className: attendanceRate >= 90 ? "awana-event-high" : 
-                                 attendanceRate >= 70 ? "awana-event-medium" : "awana-event-low"
-                    ]
+                    while (cal.getTime() <= endDate) {
+                        if (cal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                            def meetingDate = new Date(cal.getTimeInMillis())
+                            
+                            // Only include dates within the calendar season
+                            if (meetingDate >= calendar.startDate && meetingDate <= calendar.endDate) {
+                                // Calculate attendance rate (sample data for now)
+                                def attendanceRate = Math.random() * 40 + 60 // 60-100%
+                                
+                                def eventTitle = "Awana Meeting"
+                                if (calendar.startTime && calendar.endTime) {
+                                    eventTitle += " (${calendar.startTime} - ${calendar.endTime})"
+                                }
+                                
+                                def sdf = new SimpleDateFormat("yyyy-MM-dd")
+                                events << [
+                                    title: "${eventTitle} ${Math.round(attendanceRate)}%",
+                                    start: sdf.format(meetingDate),
+                                    type: "meeting",
+                                    attendanceRate: attendanceRate,
+                                    className: attendanceRate >= 90 ? "awana-event-high" : 
+                                             attendanceRate >= 70 ? "awana-event-medium" : "awana-event-low"
+                                ]
+                            }
+                        }
+                        cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                    }
                 }
-                cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
             }
             
-            // Add some holidays
-            events << [
-                title: "Christmas Break",
-                start: "2024-12-25",
-                type: "holiday",
-                className: "awana-event-holiday"
-            ]
-            
-            render(contentType: "application/json") {
-                [events: events]
-            }
-            return false // Don't render template
+            response.contentType = 'application/json'
+            render([events: events] as JSON)
+            return null // Don't render template
         },
         'clubCreateForm': { params ->
             return [
@@ -813,6 +860,11 @@ class UniversalController {
             def viewClosure = viewRenderMap[viewType]
             if (viewClosure) {
                 def result = viewClosure(params)
+                
+                // If closure returns null, it handled its own rendering
+                if (result == null) {
+                    return
+                }
                 
                 if (isJsonRequest()) {
                     render result.model as JSON

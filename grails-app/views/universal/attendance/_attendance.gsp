@@ -22,7 +22,10 @@ Loaded via: /renderView?viewType=attendance
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold">Awana Calendar</h2>
-                    <button class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                    <button hx-get="/renderView?viewType=calendarSetup"
+                            hx-target="#attendance-page-content"
+                            hx-swap="innerHTML"
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
@@ -122,7 +125,10 @@ Loaded via: /renderView?viewType=attendance
                     </div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">No Calendar Set</h3>
                     <p class="text-gray-600 mb-4">Create an Awana calendar to start tracking attendance</p>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <button hx-get="/renderView?viewType=calendarSetup"
+                            hx-target="#attendance-page-content"
+                            hx-swap="innerHTML"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                         Setup Calendar Now
                     </button>
                 </div>
@@ -233,35 +239,43 @@ Loaded via: /renderView?viewType=attendance
         </div>
     </div>
 </div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('awana-calendar');
-    
-    if (calendarEl) {
+    (function initFullCalendar() {
+        console.log('FullCalendar script running...');
+        const calendarEl = document.getElementById('awana-calendar');
+        console.log('Calendar element found:', !!calendarEl);
+
+        if (!calendarEl) return;
+
+        console.log('Initializing FullCalendar...');
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: false, // We're using custom header
-            
+
             // Theme and styling
             themeSystem: 'standard',
             height: 'auto',
-            
+
             // Event sources - load from HTMX endpoints
             events: function(info, successCallback, failureCallback) {
-                // Load calendar events via HTMX/fetch
+                console.log('FullCalendar requesting events for:', info.startStr, 'to', info.endStr);
                 fetch('/renderView?viewType=calendarEvents&start=' + info.startStr + '&end=' + info.endStr)
-                    .then(response => response.json())
-                    .then(data => successCallback(data.events || []))
+                    .then(response => {
+                        console.log('Calendar events response:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Calendar events data:', data);
+                        successCallback(data.events || []);
+                    })
                     .catch(error => {
                         console.error('Error loading calendar events:', error);
                         failureCallback(error);
                     });
             },
-            
+
             // Event styling
             eventClassNames: function(arg) {
-                // Color events based on type and attendance
                 if (arg.event.extendedProps.type === 'meeting') {
                     const attendance = arg.event.extendedProps.attendanceRate || 0;
                     if (attendance >= 90) return ['awana-event-high'];
@@ -272,64 +286,86 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (arg.event.extendedProps.type === 'holiday') return ['awana-event-holiday'];
                 return ['awana-event-default'];
             },
-            
+
             // Click handlers
             eventClick: function(info) {
                 showEventDetails(info.event);
             },
-            
             dateClick: function(info) {
                 showDateActions(info.date);
             },
-            
+
             // View change handler - updates metrics sidebar
             datesSet: function(dateInfo) {
                 updateMetricsSidebar(dateInfo);
             }
         });
-        
+
         calendar.render();
-        
+        console.log('FullCalendar rendered successfully');
+
         // Store calendar globally for controls
         window.awanaCalendar = calendar;
-        
+
+        // Refresh events if this is a reload
+        if (window.location.hash !== '#calendar-initial-load') {
+            calendar.refetchEvents();
+        }
+        window.location.hash = '#calendar-initial-load';
+
         // Wire up view controls
         document.querySelectorAll('[data-calendar-view]').forEach(button => {
             button.addEventListener('click', function() {
                 const view = this.getAttribute('data-calendar-view');
                 calendar.changeView(view);
-                
+
                 // Update active button
                 document.querySelectorAll('[data-calendar-view]').forEach(b => {
-                    b.className = b.className.replace('bg-white text-blue-600', 'text-white hover:bg-white hover:bg-opacity-20');
+                    b.className = b.className.replace(
+                        'bg-white text-blue-600',
+                        'text-white hover:bg-white hover:bg-opacity-20'
+                    );
                 });
-                this.className = this.className.replace('text-white hover:bg-white hover:bg-opacity-20', 'bg-white text-blue-600');
+                this.className = this.className.replace(
+                    'text-white hover:bg-white hover:bg-opacity-20',
+                    'bg-white text-blue-600'
+                );
             });
         });
-        
+
         // Wire up navigation controls
         document.querySelector('[data-calendar-prev]')?.addEventListener('click', () => calendar.prev());
         document.querySelector('[data-calendar-next]')?.addEventListener('click', () => calendar.next());
+
+        // Refresh calendar after HTMX swaps
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target.id === 'attendance-page-content') {
+                setTimeout(() => {
+                    if (window.awanaCalendar) {
+                        window.awanaCalendar.refetchEvents();
+                    }
+                }, 100);
+            }
+        });
+    })();
+
+    // Calendar helper functions
+    function showEventDetails(event) {
+        console.log('Event details:', event);
+        // TODO: Show event details modal/sidebar
     }
-});
 
-// Calendar helper functions
-function showEventDetails(event) {
-    console.log('Event details:', event);
-    // TODO: Show event details modal/sidebar
-}
+    function showDateActions(date) {
+        console.log('Date actions for:', date);
+        // TODO: Show date action menu (add meeting, mark holiday)
+    }
 
-function showDateActions(date) {
-    console.log('Date actions for:', date);
-    // TODO: Show date action menu (add meeting, mark holiday)
-}
-
-function updateMetricsSidebar(dateInfo) {
-    console.log('Update metrics for date range:', dateInfo);
-    // TODO: Load metrics via HTMX based on current date range
-    // This will update the metrics sidebar with attendance data for the current view
-}
+    function updateMetricsSidebar(dateInfo) {
+        console.log('Update metrics for date range:', dateInfo);
+        // TODO: Load metrics via HTMX based on current date range
+    }
 </script>
+
 
 <!-- Custom CSS for calendar events using Tailwind colors -->
 <style>

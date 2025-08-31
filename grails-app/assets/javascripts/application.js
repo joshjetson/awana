@@ -3,6 +3,7 @@
 // HTMX loaded locally from assets
 //
 //= require htmx.min
+//= require fullcalendar.min
 //= require_self
 
 // HTMX Configuration for PWA

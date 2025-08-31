@@ -76,8 +76,8 @@ class BootstrapService {
             startDate: startDate,
             endDate: endDate,
             dayOfWeek: "Wednesday",
-            startTime: sdf.parse("1900-01-01 18:30:00"),
-            endTime: sdf.parse("1900-01-01 20:00:00"),
+            startTime: "18:30",
+            endTime: "20:00",
             description: "Awana 2024-2025 School Year"
         ).save(failOnError: true)
         

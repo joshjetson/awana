@@ -5,8 +5,8 @@ class Calendar {
     Date startDate
     Date endDate
     String dayOfWeek
-    Date startTime
-    Date endTime
+    String startTime
+    String endTime
     String description
 
     static hasMany = [attendances: Attendance]
@@ -15,19 +15,20 @@ class Calendar {
         startDate nullable: false
         endDate nullable: false
         dayOfWeek blank: false, nullable: false, inList: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        startTime nullable: true
-        endTime nullable: true
+        startTime nullable: true, blank: false
+        endTime nullable: true, blank: false
         description nullable: true
     }
 
     static mapping = {
         version false
-        startTime type: 'time'
-        endTime type: 'time'
     }
 
     String toString() {
-        return "${description ?: 'Awana Calendar'} (${startDate.format('MM/dd/yyyy')} - ${endDate.format('MM/dd/yyyy')})"
+        def dateFormat = new java.text.SimpleDateFormat('MM/dd/yyyy')
+        def startStr = startDate ? dateFormat.format(startDate) : 'null'
+        def endStr = endDate ? dateFormat.format(endDate) : 'null'
+        return "${description ?: 'Awana Calendar'} (${startStr} - ${endStr})"
     }
 
     List<Date> getAttendanceDates() {
