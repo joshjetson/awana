@@ -357,6 +357,7 @@ class UniversalController {
             // Parse date strings from FullCalendar
             def startDate = parseDate(params.start)
             def endDate = parseDate(params.end)
+            Long studentId = params.long('studentId') // Check if filtering by specific student
             
             if (!startDate || !endDate) {
                 use(TimeCategory) {
@@ -387,6 +388,9 @@ class UniversalController {
                     def cal = java.util.Calendar.getInstance()
                     cal.setTime(startDate)
                     
+                    // Get student for filtering if provided
+                    def student = studentId ? universalDataService.getById(Student, studentId) : null
+                    
                     // Loop until we go past the end date to ensure we don't miss the last meeting
                     while (cal.getTime() <= endDate) {
                         if (cal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
@@ -394,23 +398,56 @@ class UniversalController {
                             
                             // Only include dates within the calendar season
                             if (meetingDate >= calendar.startDate && meetingDate <= calendar.endDate) {
-                                // Calculate attendance rate (sample data for now)
-                                def attendanceRate = Math.random() * 40 + 60 // 60-100%
-                                
                                 def eventTitle = "Awana Meeting"
                                 if (calendar.startTime && calendar.endTime) {
                                     eventTitle += " (${calendar.startTime} - ${calendar.endTime})"
                                 }
                                 
                                 def sdf = new SimpleDateFormat("yyyy-MM-dd")
-                                events << [
-                                    title: "${eventTitle} ${Math.round(attendanceRate)}%",
+                                def eventData = [
                                     start: sdf.format(meetingDate),
-                                    type: "meeting",
-                                    attendanceRate: attendanceRate,
-                                    className: attendanceRate >= 90 ? "awana-event-high" : 
-                                             attendanceRate >= 70 ? "awana-event-medium" : "awana-event-low"
+                                    type: "meeting"
                                 ]
+                                
+                                if (student) {
+                                    // Show individual student's attendance for this date
+                                    def attendance = student.attendances?.find { att ->
+                                        att.attendanceDate && 
+                                        sdf.format(att.attendanceDate) == sdf.format(meetingDate)
+                                    }
+                                    
+                                    if (attendance) {
+                                        // Student has an attendance record - show if present or absent
+                                        eventData.title = attendance.present ? 
+                                            "${eventTitle} - Present" : 
+                                            "${eventTitle} - Absent"
+                                        eventData.className = attendance.present ? 
+                                            "awana-event-high" : 
+                                            "awana-event-low"
+                                        eventData.present = attendance.present
+                                    } else {
+                                        // No attendance record for this date
+                                        eventData.title = "${eventTitle} - No Record"
+                                        eventData.className = "awana-event-scheduled"
+                                        eventData.present = null
+                                    }
+                                } else {
+                                    // Show overall attendance rate for all students (existing logic)
+                                    def allAttendances = Attendance.findAllByAttendanceDate(meetingDate)
+                                    def attendanceRate = 0
+                                    if (allAttendances.size() > 0) {
+                                        def presentCount = allAttendances.count { it.present }
+                                        attendanceRate = (presentCount / allAttendances.size()) * 100
+                                    }
+                                    
+                                    eventData.title = "${eventTitle} ${Math.round(attendanceRate)}%"
+                                    eventData.attendanceRate = attendanceRate
+                                    eventData.className = attendanceRate >= 90 ? "awana-event-high" : 
+                                                        attendanceRate >= 70 ? "awana-event-medium" : 
+                                                        attendanceRate > 0 ? "awana-event-low" : "awana-event-scheduled"
+                                }
+                                
+                                events << eventData
                             }
                         }
                         cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
