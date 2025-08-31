@@ -294,6 +294,35 @@ When refactoring existing code to this pattern:
 - **Zero custom endpoints** - everything goes through /renderView
 - **Declarative HTMX** - no manual htmx.ajax() calls needed
 
+## Current Task Checklist - Calendar Attendance Integration
+
+### ✅ COMPLETED
+- [x] Created attendance management GSP templates
+- [x] Added viewRenderMap entries to UniversalController
+- [x] Fixed HTMX syntax errors in templates
+- [x] Added debug logging to calendar click handlers
+
+### 🔄 IN PROGRESS
+- [ ] **FIX EVENT CLICK HANDLER** - Currently eventClick fires instead of dateClick when clicking Awana meeting events
+- [ ] Make Awana meeting events clickable to open attendance management
+- [ ] Test club overview → club students → individual student flow
+- [ ] Verify search functionality using UniversalDataService.listPaginated
+- [ ] Test attendance stats display in club cards
+- [ ] Ensure student attendance records show correctly
+
+### 📋 TODO
+- [ ] Add search bar to attendance management header (in blue banner area)
+- [ ] Implement student search results with attendance records
+- [ ] Add club selection with attendance percentages
+- [ ] Test individual student attendance detail view
+- [ ] Verify buck calculation based on attendance
+- [ ] Add bulk attendance marking functionality
+
+### 🎯 CURRENT ISSUE
+**Problem:** User clicks on "Awana Meeting" event in calendar but nothing happens
+**Root Cause:** eventClick handler fires instead of dateClick when clicking on calendar events
+**Solution:** Modify eventClick handler to navigate to attendance management for meeting events
+
 ## Development Progress Status
 
 ### ✅ COMPLETED FEATURES

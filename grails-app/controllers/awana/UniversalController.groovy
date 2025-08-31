@@ -12,16 +12,22 @@ class UniversalController {
     UniversalDataService universalDataService
     
     def parseDate(String value) {
+        if (!value) return null
         try {
-            if (value.contains('T')) {
-                // ISO 8601 with offset, e.g. 2025-07-27T00:00:00-05:00
-                return javax.xml.bind.DatatypeConverter.parseDateTime(value).time
-            } else {
-                return new SimpleDateFormat("yyyy-MM-dd").parse(value)
+            // Handle yyyy-MM-dd format (most common and safest)
+            if (value ==~ /^\d{4}-\d{2}-\d{2}$/) {
+                return new SimpleDateFormat('yyyy-MM-dd').parse(value)
             }
+            // Handle ISO format from FullCalendar (extract date part safely)
+            if (value.contains('T') && value.split('T')[0] ==~ /^\d{4}-\d{2}-\d{2}$/) {
+                String datePart = value.split('T')[0]
+                return new SimpleDateFormat('yyyy-MM-dd').parse(datePart)
+            }
+            // For everything else, use Groovy's built-in Date.parse() which handles most formats
+            return Date.parse(value)
         } catch (Exception e) {
-            log.error("Date parse failed: ${value}", e)
-            return null
+            log.warn("Date parse failed for value: ${value}, using current date")
+            return new Date() // Return current date as fallback
         }
     }
 
@@ -463,6 +469,129 @@ class UniversalController {
             return [
                 template: 'students/addStudentToHousehold',
                 model: [student: student, household: student.household, clubs: clubs]
+            ]
+        },
+        'attendanceManagement': { params ->
+            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            return [
+                template: 'attendance/attendanceManagement',
+                model: [meetingDate: meetingDate]
+            ]
+        },
+        'attendanceClubOverview': { params ->
+            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            def clubs = universalDataService.list(Club)
+            
+            // Calculate attendance stats for each club
+            def attendanceStats = [:]
+            clubs.each { club ->
+                def studentsInClub = club.students ?: []
+                def presentCount = studentsInClub.count { student ->
+                    // Find attendance for the specific meeting date
+                    def attendance = student.attendances?.find { att -> 
+                        att.attendanceDate && meetingDate && 
+                        att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+                    }
+                    attendance?.present ?: false
+                }
+                attendanceStats[club.id] = [
+                    presentCount: presentCount,
+                    attendanceRate: studentsInClub.size() > 0 ? (presentCount / studentsInClub.size()) : 0
+                ]
+            }
+            
+            return [
+                template: 'attendance/attendanceClubOverview',
+                model: [
+                    clubs: clubs,
+                    meetingDate: meetingDate,
+                    attendanceStats: attendanceStats
+                ]
+            ]
+        },
+        'attendanceStudentSearch': { params ->
+            def searchTerm = params.attendanceSearch?.trim()
+            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            
+            Map searchResult = universalDataService.listPaginated([
+                domainClass: Student,
+                params: params,
+                searchableFields: ['firstName', 'lastName', 'household.name'],
+                defaultSort: 'firstName'
+            ])
+            
+            // Filter by search term if provided
+            def students = searchResult.list
+            if (searchTerm) {
+                students = students.findAll { student ->
+                    student.firstName.toLowerCase().contains(searchTerm.toLowerCase()) ||
+                    student.lastName.toLowerCase().contains(searchTerm.toLowerCase()) ||
+                    student.household.name.toLowerCase().contains(searchTerm.toLowerCase())
+                }
+            }
+            
+            return [
+                template: 'attendance/attendanceStudentList',
+                model: [
+                    students: students,
+                    meetingDate: meetingDate,
+                    searchTerm: searchTerm
+                ]
+            ]
+        },
+        'attendanceClubStudents': { params ->
+            Long clubId = params.long('clubId')
+            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            def club = universalDataService.getById(Club, clubId)
+            
+            if (!club) {
+                throw new IllegalArgumentException("Club not found")
+            }
+            
+            // Calculate club attendance stats
+            def studentsInClub = club.students ?: []
+            def presentCount = studentsInClub.count { student ->
+                // Find attendance for the specific meeting date
+                def attendance = student.attendances?.find { att -> 
+                    att.attendanceDate && meetingDate && 
+                    att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+                }
+                attendance?.present ?: false
+            }
+            def attendanceRate = studentsInClub.size() > 0 ? (presentCount / studentsInClub.size()) : 0
+            
+            return [
+                template: 'attendance/attendanceClubStudents',
+                model: [
+                    club: club,
+                    meetingDate: meetingDate,
+                    presentCount: presentCount,
+                    attendanceRate: attendanceRate
+                ]
+            ]
+        },
+        'studentAttendanceDetail': { params ->
+            Long studentId = params.long('studentId')
+            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            def student = universalDataService.getById(Student, studentId)
+            
+            if (!student) {
+                throw new IllegalArgumentException("Student not found")
+            }
+            
+            // Find attendance record for this student on this date
+            def attendance = student.attendances?.find { att -> 
+                att.attendanceDate && meetingDate && 
+                att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+            }
+            
+            return [
+                template: 'attendance/studentAttendanceDetail',
+                model: [
+                    student: student,
+                    meetingDate: meetingDate,
+                    attendance: attendance
+                ]
             ]
         }
     ]

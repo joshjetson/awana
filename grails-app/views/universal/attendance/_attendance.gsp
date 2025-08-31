@@ -392,13 +392,60 @@ Loaded via: /renderView?viewType=attendance
 
     // Calendar helper functions
     function showEventDetails(event) {
-        console.log('Event details:', event);
-        // TODO: Show event details modal/sidebar
+        console.log('Event clicked:', event);
+        console.log('Event type:', event.extendedProps?.type);
+        
+        // Check if this is an Awana meeting event
+        if (event.extendedProps?.type === 'meeting') {
+            console.log('Awana meeting event clicked! Loading attendance...');
+            // Get the date from the event and format as yyyy-MM-dd
+            let meetingDate;
+            if (event.start instanceof Date) {
+                meetingDate = event.start.toISOString().split('T')[0];
+            } else if (event.startStr) {
+                meetingDate = event.startStr.split('T')[0];
+            } else {
+                meetingDate = new Date(event.start).toISOString().split('T')[0];
+            }
+            console.log('Meeting date from event:', meetingDate);
+            
+            // Navigate to attendance management for this date
+            htmx.ajax('GET', '/renderView?viewType=attendanceManagement&meetingDate=' + meetingDate, {
+                target: '#attendance-page-content',
+                swap: 'innerHTML'
+            });
+        } else {
+            console.log('Non-meeting event clicked, showing details...');
+            // TODO: Show event details modal/sidebar for other events
+        }
     }
 
     function showDateActions(date) {
-        console.log('Date actions for:', date);
-        // TODO: Show date action menu (add meeting, mark holiday)
+        console.log('Date clicked:', date);
+        console.log('Date type:', typeof date);
+        
+        // Check if this is an Awana meeting day
+        const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+        console.log('Day of week:', dayOfWeek);
+        
+        <g:if test="${calendar}">
+        console.log('Calendar day of week: ${calendar.dayOfWeek}');
+        if (dayOfWeek === '${calendar.dayOfWeek}') {
+            console.log('This is an Awana meeting day! Loading attendance...');
+            // Navigate to attendance management for this date
+            const meetingDate = date.toISOString().split('T')[0];
+            console.log('Meeting date:', meetingDate);
+            htmx.ajax('GET', '/renderView?viewType=attendanceManagement&meetingDate=' + meetingDate, {
+                target: '#attendance-page-content',
+                swap: 'innerHTML'
+            });
+        } else {
+            console.log('Not a meeting day (' + dayOfWeek + ' !== ${calendar.dayOfWeek}) - no attendance available');
+        }
+        </g:if>
+        <g:else>
+        console.log('No calendar configured');
+        </g:else>
     }
 
     function updateMetricsSidebar(dateInfo) {
