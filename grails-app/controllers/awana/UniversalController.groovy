@@ -232,7 +232,7 @@ class UniversalController {
             ]
         },
         'attendanceRecord': { params ->
-            String dateStr = params.date ?: new Date().format('yyyy-MM-dd')
+            String dateStr = params.date ?: new SimpleDateFormat('yyyy-MM-dd').format(new Date())
             Date selectedDate = Date.parse('yyyy-MM-dd', dateStr)
             Long clubId = params.long('clubId')
             
@@ -288,7 +288,8 @@ class UniversalController {
                     }
                     
                     // Calculate metrics
-                    def totalMeetingDates = thisMonthAttendances.collect { it.attendanceDate.format('yyyy-MM-dd') }.unique()
+                    def sdf = new SimpleDateFormat('yyyy-MM-dd')
+                    def totalMeetingDates = thisMonthAttendances.collect { sdf.format(it.attendanceDate) }.unique()
                     attendanceMetrics.totalMeetings = totalMeetingDates.size()
                     attendanceMetrics.meetingsCompleted = totalMeetingDates.size()
                     
@@ -586,9 +587,10 @@ class UniversalController {
                 def studentsInClub = club.students ?: []
                 def presentCount = studentsInClub.count { student ->
                     // Find attendance for the specific meeting date
+                    def sdf = new SimpleDateFormat('yyyy-MM-dd')
                     def attendance = student.attendances?.find { att -> 
                         att.attendanceDate && meetingDate && 
-                        att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+                        sdf.format(att.attendanceDate) == sdf.format(meetingDate) 
                     }
                     attendance?.present ?: false
                 }
@@ -650,9 +652,10 @@ class UniversalController {
             def studentsInClub = club.students ?: []
             def presentCount = studentsInClub.count { student ->
                 // Find attendance for the specific meeting date
+                def sdf = new SimpleDateFormat('yyyy-MM-dd')
                 def attendance = student.attendances?.find { att -> 
                     att.attendanceDate && meetingDate && 
-                    att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+                    sdf.format(att.attendanceDate) == sdf.format(meetingDate) 
                 }
                 attendance?.present ?: false
             }
@@ -669,7 +672,7 @@ class UniversalController {
             ]
         },
         'studentAttendanceDetail': { params ->
-            Long studentId = params.long('studentId')
+            Long studentId = params.long('refreshStudentId') ?: params.long('studentId')
             def meetingDate = parseDate(params.meetingDate) ?: new Date()
             def student = universalDataService.getById(Student, studentId)
             
@@ -678,17 +681,22 @@ class UniversalController {
             }
             
             // Find attendance record for this student on this date
+            def sdf = new SimpleDateFormat('yyyy-MM-dd')
             def attendance = student.attendances?.find { att -> 
                 att.attendanceDate && meetingDate && 
-                att.attendanceDate.format('yyyy-MM-dd') == meetingDate.format('yyyy-MM-dd') 
+                sdf.format(att.attendanceDate) == sdf.format(meetingDate) 
             }
+            
+            // Get the current calendar
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
             
             return [
                 template: 'attendance/studentAttendanceDetail',
                 model: [
                     student: student,
                     meetingDate: meetingDate,
-                    attendance: attendance
+                    attendance: attendance,
+                    calendar: calendar
                 ]
             ]
         },

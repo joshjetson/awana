@@ -113,6 +113,61 @@
         </div>
     </div>
 
+    <!-- Quick Attendance Edit -->
+    <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="flex items-center justify-between">
+            <h4 class="font-medium text-gray-900">Quick Edit</h4>
+            <div class="flex items-center space-x-4">
+                <form <g:if test="${attendance?.id}">hx-put="/api/universal/Attendance/${attendance.id}?domainName=Attendance&viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:if><g:else>hx-post="/api/universal/Attendance?domainName=Attendance&viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:else>
+                      hx-target="#attendance-content-area"
+                      hx-swap="innerHTML"
+                      hx-indicator="#save-indicator" 
+                      class="flex items-center space-x-3">
+                    
+                    <input type="hidden" name="student.id" value="${student.id}">
+                    <input type="hidden" name="calendar.id" value="${calendar?.id}">
+                    <input type="hidden" name="attendanceDate" value="<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>">
+                    
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="present" value="true" id="present-yes" ${attendance?.present ? 'checked' : ''} class="w-4 h-4 text-green-600">
+                        <label for="present-yes" class="text-sm text-green-700 font-medium">Present</label>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" name="present" value="false" id="present-no" ${attendance?.present == false ? 'checked' : ''} class="w-4 h-4 text-red-600">
+                        <label for="present-no" class="text-sm text-red-700 font-medium">Absent</label>
+                    </div>
+                    
+                    <div id="extras" class="flex items-center space-x-2" style="${attendance?.present ? '' : 'display: none;'}">
+                        <input type="checkbox" name="hasUniform" value="true" id="uniform" ${attendance?.hasUniform ? 'checked' : ''} class="w-4 h-4 text-blue-600">
+                        <label for="uniform" class="text-xs text-gray-600">Uniform</label>
+                        <input type="checkbox" name="hasBible" value="true" id="bible" ${attendance?.hasBible ? 'checked' : ''} class="w-4 h-4 text-purple-600">
+                        <label for="bible" class="text-xs text-gray-600">Bible</label>
+                        <input type="checkbox" name="hasHandbook" value="true" id="handbook" ${attendance?.hasHandbook ? 'checked' : ''} class="w-4 h-4 text-orange-600">
+                        <label for="handbook" class="text-xs text-gray-600">Handbook</label>
+                    </div>
+                    
+                    <button type="submit" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded">
+                        <span id="save-indicator" class="htmx-indicator">
+                            <svg class="animate-spin w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                        Save
+                    </button>
+                </form>
+                
+                <g:if test="${attendance?.id}">
+                    <button hx-delete="/api/universal/Attendance/${attendance.id}?viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"
+                            hx-target="#attendance-content-area"
+                            hx-swap="innerHTML"
+                            hx-confirm="Delete this attendance record?"
+                            class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded">×</button>
+                </g:if>
+            </div>
+        </div>
+    </div>
+
     <!-- Student Summary Stats -->
     <div class="border-t pt-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Overall Statistics</h3>
@@ -139,3 +194,19 @@
         </div>
     </div>
 </div>
+
+<script>
+// Show/hide extras based on attendance status
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'present') {
+        const extras = document.getElementById('extras');
+        if (e.target.value === 'true') {
+            extras.style.display = 'flex';
+        } else {
+            extras.style.display = 'none';
+            // Clear checkboxes when hiding
+            extras.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+    }
+});
+</script>

@@ -32,8 +32,10 @@
         <div class="space-y-3">
             <g:each in="${club.students}" var="student">
                 <% 
+                    def sdf = new java.text.SimpleDateFormat('yyyy-MM-dd')
                     def attendance = student.attendances?.find { att -> 
-                        att.attendanceDate?.format('yyyy-MM-dd') == meetingDate?.format('yyyy-MM-dd') 
+                        att.attendanceDate && meetingDate && 
+                        sdf.format(att.attendanceDate) == sdf.format(meetingDate) 
                     } 
                 %>
                 <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -93,30 +95,13 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
-                                <span class="ml-2">${attendance?.present ? 'Edit' : 'Mark'}</span>
+                                <span class="ml-2">Edit</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </g:each>
         </div>
-        
-        <!-- Bulk Actions -->
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Bulk Actions</h3>
-            <div class="flex space-x-3">
-                <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
-                    Mark All Present
-                </button>
-                <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
-                    Mark All Absent
-                </button>
-                <button class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors">
-                    Export Report
-                </button>
-            </div>
-        </div>
-        
     </g:if>
     <g:else>
         <div class="text-center py-8 text-gray-500">

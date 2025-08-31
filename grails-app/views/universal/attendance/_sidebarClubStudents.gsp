@@ -23,7 +23,11 @@
             <div class="mt-2 flex items-center space-x-1">
                 <% 
                     // Calculate recent attendance rate
-                    def recentAttendances = student.attendances?.findAll { it.attendanceDate > new Date() - 30 } ?: []
+                    def thirtyDaysAgo
+                    use(groovy.time.TimeCategory) {
+                        thirtyDaysAgo = new Date() - 30.days
+                    }
+                    def recentAttendances = student.attendances?.findAll { it.attendanceDate > thirtyDaysAgo } ?: []
                     def attendanceRate = recentAttendances.size() > 0 ? 
                         (recentAttendances.count { it.present } / recentAttendances.size()) * 100 : 0
                 %>
