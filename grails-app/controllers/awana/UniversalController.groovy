@@ -273,12 +273,73 @@ class UniversalController {
             def clubs = universalDataService.list(Club)
             def totalStudents = universalDataService.count(Student)
             
+            // Calculate real attendance metrics
+            def attendanceMetrics = [:]
+            if (calendar) {
+                use(TimeCategory) {
+                    // Get current month meetings
+                    def currentMonthEnd = new Date()
+                    def currentMonthStart = currentMonthEnd - 30.days
+                    
+                    // Count meetings this month
+                    def allAttendances = Attendance.findAll()
+                    def thisMonthAttendances = allAttendances.findAll { attendance ->
+                        attendance.attendanceDate >= currentMonthStart && attendance.attendanceDate <= currentMonthEnd
+                    }
+                    
+                    // Calculate metrics
+                    def totalMeetingDates = thisMonthAttendances.collect { it.attendanceDate.format('yyyy-MM-dd') }.unique()
+                    attendanceMetrics.totalMeetings = totalMeetingDates.size()
+                    attendanceMetrics.meetingsCompleted = totalMeetingDates.size()
+                    
+                    if (thisMonthAttendances.size() > 0) {
+                        def presentCount = thisMonthAttendances.count { it.present }
+                        attendanceMetrics.averageAttendance = (presentCount / thisMonthAttendances.size()) * 100
+                    } else {
+                        attendanceMetrics.averageAttendance = 0
+                    }
+                }
+            }
+            
+            // Calculate club-specific attendance rates for sidebar
+            def clubAttendanceRates = [:]
+            clubs.each { club ->
+                def clubStudents = club.students?.toList() ?: []
+                if (clubStudents.size() > 0) {
+                    // Calculate overall attendance rate for this club (last 30 days)
+                    def thirtyDaysAgo
+                    use(TimeCategory) {
+                        thirtyDaysAgo = new Date() - 30.days
+                    }
+                    def recentAttendances = []
+                    
+                    clubStudents.each { student ->
+                        def studentAttendances = student.attendances?.findAll { 
+                            it.attendanceDate > thirtyDaysAgo 
+                        } ?: []
+                        recentAttendances.addAll(studentAttendances)
+                    }
+                    
+                    if (recentAttendances.size() > 0) {
+                        def presentCount = recentAttendances.count { it.present }
+                        def rate = Math.round((presentCount / recentAttendances.size()) * 100)
+                        clubAttendanceRates[club.id] = rate
+                    } else {
+                        clubAttendanceRates[club.id] = 0
+                    }
+                } else {
+                    clubAttendanceRates[club.id] = 0
+                }
+            }
+            
             return [
                 template: 'attendance/attendance',
                 model: [
                     calendar: calendar,
                     clubs: clubs,
-                    totalStudents: totalStudents
+                    totalStudents: totalStudents,
+                    attendanceMetrics: attendanceMetrics,
+                    clubAttendanceRates: clubAttendanceRates
                 ]
             ]
         },
@@ -591,6 +652,25 @@ class UniversalController {
                     student: student,
                     meetingDate: meetingDate,
                     attendance: attendance
+                ]
+            ]
+        },
+        'sidebarClubStudents': { params ->
+            Long clubId = params.long('clubId')
+            def club = universalDataService.getById(Club, clubId)
+            
+            if (!club) {
+                return [
+                    template: 'attendance/sidebarClubStudents',
+                    model: [students: []]
+                ]
+            }
+            
+            return [
+                template: 'attendance/sidebarClubStudents',
+                model: [
+                    students: club.students?.sort { it.firstName },
+                    club: club
                 ]
             ]
         }

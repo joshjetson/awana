@@ -4,12 +4,38 @@ Loaded via: /renderView?viewType=attendance
 --%>
 
 <div class="min-h-screen bg-gray-50 pb-20">
-    <!-- Header -->
+    <!-- Header with Real Metrics -->
     <div class="bg-gradient-to-r from-blue-600 to-green-600 text-white px-4 py-6">
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-2xl font-bold mb-2">Attendance & Calendar</h1>
-            <div class="text-blue-100">
-                Manage Awana calendar, track attendance, and view metrics
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">Attendance & Calendar</h1>
+                    <div class="text-blue-100">
+                        <span id="calendar-view-subtitle">Manage Awana calendar, track attendance, and view metrics</span>
+                    </div>
+                </div>
+                
+                <!-- Real-time Metrics -->
+                <div class="flex space-x-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white" id="avg-attendance-metric">
+                            ${attendanceMetrics?.averageAttendance ? Math.round(attendanceMetrics.averageAttendance) : '--'}%
+                        </div>
+                        <div class="text-blue-100 text-xs">Average Attendance</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white" id="meetings-completed-metric">
+                            ${attendanceMetrics?.meetingsCompleted ?: 0}/${attendanceMetrics?.totalMeetings ?: 0}
+                        </div>
+                        <div class="text-blue-100 text-xs">Meetings This Month</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-white" id="total-students-metric">
+                            ${totalStudents ?: 0}
+                        </div>
+                        <div class="text-blue-100 text-xs">Total Students</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -85,44 +111,51 @@ Loaded via: /renderView?viewType=attendance
                     </div>
                 </div>
                 
-                <!-- Metrics Sidebar -->
-                <div class="lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 p-6 bg-gray-50">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Calendar Metrics</h3>
-                    
-                    <!-- Current Period Stats -->
-                    <div class="space-y-4 mb-6">
-                        <div class="bg-white rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm text-gray-600">This Month</span>
-                                <span class="text-2xl font-bold text-green-600">92%</span>
-                            </div>
-                            <div class="text-xs text-gray-500">Average Attendance</div>
+                <!-- Dynamic Controls Sidebar -->
+                <div class="lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50 flex flex-col">
+                    <!-- Sidebar Header -->
+                    <div class="p-4 border-b border-gray-200 bg-white">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900" id="sidebar-title">Clubs</h3>
+                            <button id="sidebar-back-btn" style="display: none;" 
+                                    onclick="resetCalendarView()"
+                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m0 7h18"/>
+                                </svg>
+                                <span>Back</span>
+                            </button>
                         </div>
-                        
-                        <div class="bg-white rounded-lg p-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm text-gray-600">Meetings</span>
-                                <span class="text-2xl font-bold text-blue-600">4/5</span>
-                            </div>
-                            <div class="text-xs text-gray-500">Completed This Month</div>
-                        </div>
+                        <p class="text-sm text-gray-600 mt-1" id="sidebar-subtitle">Click a club to view students</p>
                     </div>
                     
-                    <!-- Quick Actions -->
-                    <div class="space-y-3">
-                        <h4 class="text-sm font-semibold text-gray-900 mb-2">Quick Actions</h4>
+                    <!-- Scrollable Content Area -->
+                    <div class="flex-1 overflow-y-auto p-4" id="sidebar-content">
+                        <!-- Club Controls (Default View) -->
+                        <div id="clubs-view" class="space-y-3">
+                            <g:each in="${clubs}" var="club">
+                                <div class="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer border-l-4 ${club.name == 'Cubbies' ? 'border-yellow-400' : club.name == 'Sparks' ? 'border-orange-400' : club.name.contains('T&T') ? 'border-blue-400' : 'border-purple-400'}"
+                                     onclick="showClubStudents('${club.id}', '${club.name}')">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900 text-sm">${club.name}</h4>
+                                            <p class="text-xs text-gray-600">${club.students?.size() ?: 0} students</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-lg font-bold ${club.name == 'Cubbies' ? 'text-yellow-600' : club.name == 'Sparks' ? 'text-orange-600' : club.name.contains('T&T') ? 'text-blue-600' : 'text-purple-600'}">
+                                                ${clubAttendanceRates[club.id] ?: 0}%
+                                            </div>
+                                            <div class="text-xs text-gray-500">30-Day Rate</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </g:each>
+                        </div>
                         
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                            View Today's Attendance
-                        </button>
-                        
-                        <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                            Mark as Holiday
-                        </button>
-                        
-                        <button class="w-full border border-gray-300 hover:bg-gray-50 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                            Export Report
-                        </button>
+                        <!-- Student Controls (Hidden by default) -->
+                        <div id="students-view" style="display: none;" class="space-y-2">
+                            <!-- Students will be loaded here dynamically -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -288,7 +321,15 @@ Loaded via: /renderView?viewType=attendance
             // Event sources - load from HTMX endpoints
             events: function(info, successCallback, failureCallback) {
                 console.log('FullCalendar requesting events for:', info.startStr, 'to', info.endStr);
-                fetch('/renderView?viewType=calendarEvents&start=' + info.startStr + '&end=' + info.endStr)
+                let url = '/renderView?viewType=calendarEvents&start=' + info.startStr + '&end=' + info.endStr;
+                
+                // Add student filter if active
+                if (window.currentStudentFilter) {
+                    url += '&studentId=' + window.currentStudentFilter;
+                    console.log('Filtering calendar for student:', window.currentStudentFilter);
+                }
+                
+                fetch(url)
                     .then(response => {
                         console.log('Calendar events response:', response.status);
                         return response.json();
@@ -460,6 +501,102 @@ Loaded via: /renderView?viewType=attendance
             const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
             titleElement.textContent = formatter.format(currentDate);
         }
+    }
+
+    // Global variables for calendar state
+    window.currentCalendarView = 'all'; // 'all', 'club', 'student'
+    window.currentClubId = null;
+    window.currentStudentId = null;
+
+    // Show students for a specific club
+    function showClubStudents(clubId, clubName) {
+        console.log('Showing students for club:', clubId, clubName);
+        
+        // Update state
+        window.currentCalendarView = 'club';
+        window.currentClubId = clubId;
+        
+        // Update sidebar UI
+        document.getElementById('sidebar-title').textContent = clubName;
+        document.getElementById('sidebar-subtitle').textContent = 'Click a student to filter calendar';
+        document.getElementById('sidebar-back-btn').style.display = 'flex';
+        document.getElementById('calendar-view-subtitle').textContent = `Viewing ${clubName} attendance data`;
+        
+        // Hide clubs, show loading
+        document.getElementById('clubs-view').style.display = 'none';
+        document.getElementById('students-view').style.display = 'block';
+        document.getElementById('students-view').innerHTML = '<div class="text-center py-4 text-gray-500">Loading students...</div>';
+        
+        // Load students via HTMX
+        htmx.ajax('GET', '/renderView?viewType=sidebarClubStudents&clubId=' + clubId, {
+            target: '#students-view',
+            swap: 'innerHTML'
+        });
+    }
+
+    // Show individual student's attendance on calendar
+    function showStudentCalendar(studentId, studentName) {
+        console.log('Filtering calendar for student:', studentId, studentName);
+        
+        // Update state
+        window.currentCalendarView = 'student';
+        window.currentStudentId = studentId;
+        
+        // Update UI
+        document.getElementById('calendar-view-subtitle').textContent = `Viewing ${studentName}'s attendance`;
+        
+        // Update calendar to show only this student's events
+        if (window.awanaCalendar) {
+            // Add student filter parameter to calendar events
+            window.currentStudentFilter = studentId;
+            window.awanaCalendar.refetchEvents();
+        }
+        
+        // Update metrics for this student
+        updateMetricsForStudent(studentId);
+    }
+
+    // Reset calendar to show all data
+    function resetCalendarView() {
+        console.log('Resetting calendar to full view');
+        
+        // Update state
+        window.currentCalendarView = 'all';
+        window.currentClubId = null;
+        window.currentStudentId = null;
+        window.currentStudentFilter = null;
+        
+        // Reset sidebar UI
+        document.getElementById('sidebar-title').textContent = 'Clubs';
+        document.getElementById('sidebar-subtitle').textContent = 'Click a club to view students';
+        document.getElementById('sidebar-back-btn').style.display = 'none';
+        document.getElementById('calendar-view-subtitle').textContent = 'Manage Awana calendar, track attendance, and view metrics';
+        
+        // Show clubs, hide students
+        document.getElementById('clubs-view').style.display = 'block';
+        document.getElementById('students-view').style.display = 'none';
+        
+        // Reset calendar to show all events
+        if (window.awanaCalendar) {
+            window.awanaCalendar.refetchEvents();
+        }
+        
+        // Reset metrics to overall data
+        resetMetricsToOverall();
+    }
+
+    // Update metrics for individual student
+    function updateMetricsForStudent(studentId) {
+        // This would fetch student-specific metrics
+        // For now, just update the display
+        document.getElementById('total-students-metric').textContent = '1';
+        document.getElementById('total-students-metric').nextElementSibling.textContent = 'Selected Student';
+    }
+
+    // Reset metrics to overall data
+    function resetMetricsToOverall() {
+        document.getElementById('total-students-metric').textContent = '${totalStudents ?: 0}';
+        document.getElementById('total-students-metric').nextElementSibling.textContent = 'Total Students';
     }
 </script>
 
