@@ -23,11 +23,15 @@ class UniversalController {
                 String datePart = value.split('T')[0]
                 return new SimpleDateFormat('yyyy-MM-dd').parse(datePart)
             }
+            // Handle timestamp format (e.g., 1725426000000)
+            if (value ==~ /^\d{13}$/) {
+                return new Date(Long.parseLong(value))
+            }
             // For everything else, use Groovy's built-in Date.parse() which handles most formats
             return Date.parse(value)
         } catch (Exception e) {
-            log.warn("Date parse failed for value: ${value}, using current date")
-            return new Date() // Return current date as fallback
+            log.warn("Date parse failed for value: ${value}, error: ${e.message}")
+            return null // Return null to let caller handle the fallback
         }
     }
 
@@ -359,6 +363,7 @@ class UniversalController {
             def startDate = parseDate(params.start)
             def endDate = parseDate(params.end)
             Long studentId = params.long('studentId') // Check if filtering by specific student
+            Long clubId = params.long('clubId') // Check if filtering by specific club
             
             if (!startDate || !endDate) {
                 use(TimeCategory) {
@@ -389,8 +394,9 @@ class UniversalController {
                     def cal = java.util.Calendar.getInstance()
                     cal.setTime(startDate)
                     
-                    // Get student for filtering if provided
+                    // Get student or club for filtering if provided
                     def student = studentId ? universalDataService.getById(Student, studentId) : null
+                    def club = clubId ? universalDataService.getById(Club, clubId) : null
                     
                     // Loop until we go past the end date to ensure we don't miss the last meeting
                     while (cal.getTime() <= endDate) {
@@ -411,7 +417,7 @@ class UniversalController {
                                 ]
                                 
                                 if (student) {
-                                    // Show individual student's attendance for this date
+                                    // STUDENT FILTER: Show boolean colors (green/red/gray) for individual student
                                     def attendance = student.attendances?.find { att ->
                                         att.attendanceDate && 
                                         sdf.format(att.attendanceDate) == sdf.format(meetingDate)
@@ -432,8 +438,26 @@ class UniversalController {
                                         eventData.className = "awana-event-scheduled"
                                         eventData.present = null
                                     }
+                                } else if (club) {
+                                    // CLUB FILTER: Show percentage-based colors for specific club only
+                                    def clubAttendances = Attendance.withCriteria {
+                                        eq('attendanceDate', meetingDate)
+                                        'in'('student', club.students ?: [])
+                                    }
+                                    
+                                    def attendanceRate = 0
+                                    if (clubAttendances.size() > 0) {
+                                        def presentCount = clubAttendances.count { it.present }
+                                        attendanceRate = (presentCount / clubAttendances.size()) * 100
+                                    }
+                                    
+                                    eventData.title = "${eventTitle} - ${club.name} ${Math.round(attendanceRate)}%"
+                                    eventData.attendanceRate = attendanceRate
+                                    eventData.className = attendanceRate >= 90 ? "awana-event-high" : 
+                                                        attendanceRate >= 70 ? "awana-event-medium" : 
+                                                        attendanceRate > 0 ? "awana-event-low" : "awana-event-scheduled"
                                 } else {
-                                    // Show overall attendance rate for all students (existing logic)
+                                    // DEFAULT: Show cumulative percentage-based colors for ALL students across ALL clubs
                                     def allAttendances = Attendance.findAllByAttendanceDate(meetingDate)
                                     def attendanceRate = 0
                                     if (allAttendances.size() > 0) {
@@ -673,7 +697,16 @@ class UniversalController {
         },
         'studentAttendanceDetail': { params ->
             Long studentId = params.long('refreshStudentId') ?: params.long('studentId')
-            def meetingDate = parseDate(params.meetingDate) ?: new Date()
+            
+            // Debug the meetingDate parameter
+            log.info("studentAttendanceDetail - meetingDate param: '${params.meetingDate}'")
+            def meetingDate = parseDate(params.meetingDate)
+            if (!meetingDate) {
+                log.warn("Failed to parse meetingDate '${params.meetingDate}', using current date")
+                meetingDate = new Date()
+            }
+            log.info("studentAttendanceDetail - parsed meetingDate: ${meetingDate}")
+            
             def student = universalDataService.getById(Student, studentId)
             
             if (!student) {

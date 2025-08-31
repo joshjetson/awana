@@ -329,6 +329,12 @@ Loaded via: /renderView?viewType=attendance
                     console.log('Filtering calendar for student:', window.currentStudentFilter);
                 }
                 
+                // Add club filter if active
+                if (window.currentClubFilter) {
+                    url += '&clubId=' + window.currentClubFilter;
+                    console.log('Filtering calendar for club:', window.currentClubFilter);
+                }
+                
                 fetch(url)
                     .then(response => {
                         console.log('Calendar events response:', response.status);
@@ -515,12 +521,21 @@ Loaded via: /renderView?viewType=attendance
         // Update state
         window.currentCalendarView = 'club';
         window.currentClubId = clubId;
+        window.currentClubFilter = clubId;
+        
+        // Clear student filter when switching to club view
+        window.currentStudentFilter = null;
         
         // Update sidebar UI
         document.getElementById('sidebar-title').textContent = clubName;
         document.getElementById('sidebar-subtitle').textContent = 'Click a student to filter calendar';
         document.getElementById('sidebar-back-btn').style.display = 'flex';
         document.getElementById('calendar-view-subtitle').textContent = `Viewing ${clubName} attendance data`;
+        
+        // Update calendar to show club-specific data
+        if (window.awanaCalendar) {
+            window.awanaCalendar.refetchEvents();
+        }
         
         // Hide clubs, show loading
         document.getElementById('clubs-view').style.display = 'none';
@@ -541,14 +556,16 @@ Loaded via: /renderView?viewType=attendance
         // Update state
         window.currentCalendarView = 'student';
         window.currentStudentId = studentId;
+        window.currentStudentFilter = studentId;
+        
+        // Clear club filter when switching to student view
+        window.currentClubFilter = null;
         
         // Update UI
         document.getElementById('calendar-view-subtitle').textContent = `Viewing ${studentName}'s attendance`;
         
         // Update calendar to show only this student's events
         if (window.awanaCalendar) {
-            // Add student filter parameter to calendar events
-            window.currentStudentFilter = studentId;
             window.awanaCalendar.refetchEvents();
         }
         
@@ -565,6 +582,7 @@ Loaded via: /renderView?viewType=attendance
         window.currentClubId = null;
         window.currentStudentId = null;
         window.currentStudentFilter = null;
+        window.currentClubFilter = null;
         
         // Reset sidebar UI
         document.getElementById('sidebar-title').textContent = 'Clubs';
