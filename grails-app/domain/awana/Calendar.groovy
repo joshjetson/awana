@@ -100,4 +100,22 @@ class Calendar {
         Date today = new Date()
         return Calendar.findAll("FROM Calendar WHERE startDate <= :today1 AND endDate >= :today2", [today1: today, today2: today])
     }
+    def beforeInsert() {
+        normalizeEndDate()
+    }
+
+    def beforeUpdate() {
+        normalizeEndDate()
+    }
+    private void normalizeEndDate() {// We need to always add 1 day to the end date otherwise the calendar wont show the last day
+        if (endDate) {
+            def cal = java.util.Calendar.getInstance()
+            cal.setTime(endDate)
+            cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+            endDate = cal.time
+        }
+    }
+
+
+
 }

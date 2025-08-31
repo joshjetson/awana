@@ -262,5 +262,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial preview update
     updatePreview();
+    
+    // Auto-adjust end date if it falls on meeting day (simple fix for last meeting not showing)
+    form.addEventListener('submit', function(e) {
+        const dayOfWeek = document.getElementById('dayOfWeek').value;
+        const endDateInput = document.getElementById('endDate');
+        const endDate = endDateInput.value;
+        
+        if (dayOfWeek && endDate) {
+            const endDateObj = new Date(endDate);
+            const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(dayOfWeek);
+            
+            // If end date is the meeting day, extend by 1 day to ensure it's included
+            if (endDateObj.getDay() === dayIndex) {
+                endDateObj.setDate(endDateObj.getDate() + 1);
+                endDateInput.value = endDateObj.toISOString().split('T')[0];
+            }
+        }
+    });
 });
 </script>

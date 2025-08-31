@@ -408,10 +408,10 @@ Loaded via: /renderView?viewType=attendance
     
     function updateCalendarTitle(dateInfo) {
         const titleElement = document.getElementById('calendar-title');
-        if (titleElement && dateInfo.start) {
-            const date = new Date(dateInfo.start);
+        if (titleElement && window.awanaCalendar) {
+            const currentDate = window.awanaCalendar.getDate();
             const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
-            titleElement.textContent = formatter.format(date);
+            titleElement.textContent = formatter.format(currentDate);
         }
     }
 </script>
