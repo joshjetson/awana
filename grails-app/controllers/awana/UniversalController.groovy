@@ -306,28 +306,52 @@ class UniversalController {
                 }
             }
             
-            // Calculate club-specific attendance rates for sidebar
+            // Calculate club-specific attendance rates for sidebar (calendar season dates)
             def clubAttendanceRates = [:]
             clubs.each { club ->
                 def clubStudents = club.students?.toList() ?: []
-                if (clubStudents.size() > 0) {
-                    // Calculate overall attendance rate for this club (last 30 days)
-                    def thirtyDaysAgo
-                    use(TimeCategory) {
-                        thirtyDaysAgo = new Date() - 30.days
-                    }
-                    def recentAttendances = []
+                if (clubStudents.size() > 0 && calendar) {
+                    // Count all possible meeting dates in the calendar season
+                    def meetingDay = null
+                    def dayMap = [
+                        'Sunday': java.util.Calendar.SUNDAY,
+                        'Monday': java.util.Calendar.MONDAY,
+                        'Tuesday': java.util.Calendar.TUESDAY,
+                        'Wednesday': java.util.Calendar.WEDNESDAY,
+                        'Thursday': java.util.Calendar.THURSDAY,
+                        'Friday': java.util.Calendar.FRIDAY,
+                        'Saturday': java.util.Calendar.SATURDAY
+                    ]
+                    meetingDay = dayMap[calendar.dayOfWeek]
                     
-                    clubStudents.each { student ->
-                        def studentAttendances = student.attendances?.findAll { 
-                            it.attendanceDate > thirtyDaysAgo 
-                        } ?: []
-                        recentAttendances.addAll(studentAttendances)
+                    // Count total possible meeting dates in season
+                    def totalMeetingDates = 0
+                    if (meetingDay) {
+                        def cal = java.util.Calendar.getInstance()
+                        cal.setTime(calendar.startDate)
+                        while (cal.getTime() <= calendar.endDate) {
+                            if (cal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                                totalMeetingDates++
+                            }
+                            cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                        }
                     }
                     
-                    if (recentAttendances.size() > 0) {
-                        def presentCount = recentAttendances.count { it.present }
-                        def rate = Math.round((presentCount / recentAttendances.size()) * 100)
+                    if (totalMeetingDates > 0) {
+                        // Count actual present students across all meetings
+                        def totalPresentCount = 0
+                        clubStudents.each { student ->
+                            def studentAttendances = student.attendances?.findAll { attendance ->
+                                attendance.attendanceDate && attendance.present &&
+                                attendance.attendanceDate >= calendar.startDate && 
+                                attendance.attendanceDate <= calendar.endDate
+                            } ?: []
+                            totalPresentCount += studentAttendances.size()
+                        }
+                        
+                        // Calculate rate: actualPresent / (totalMeetings × totalStudents)
+                        def totalPossibleAttendances = totalMeetingDates * clubStudents.size()
+                        def rate = Math.round((totalPresentCount / totalPossibleAttendances) * 100)
                         clubAttendanceRates[club.id] = rate
                     } else {
                         clubAttendanceRates[club.id] = 0
@@ -426,29 +450,30 @@ class UniversalController {
                                     if (attendance) {
                                         // Student has an attendance record - show if present or absent
                                         eventData.title = attendance.present ? 
-                                            "${eventTitle} - Present" : 
-                                            "${eventTitle} - Absent"
+                                            "${student.firstName} - Present" : 
+                                            "${student.firstName} - Absent"
                                         eventData.className = attendance.present ? 
                                             "awana-event-high" : 
                                             "awana-event-low"
                                         eventData.present = attendance.present
                                     } else {
                                         // No attendance record for this date
-                                        eventData.title = "${eventTitle} - No Record"
+                                        eventData.title = "${student.firstName} - No Record"
                                         eventData.className = "awana-event-scheduled"
                                         eventData.present = null
                                     }
                                 } else if (club) {
-                                    // CLUB FILTER: Show percentage-based colors for specific club only
+                                    // CLUB FILTER: Calculate percentage for specific club on this specific meeting
+                                    def clubStudents = club.students?.toList() ?: []
                                     def clubAttendances = Attendance.withCriteria {
                                         eq('attendanceDate', meetingDate)
-                                        'in'('student', club.students ?: [])
+                                        'in'('student', clubStudents)
                                     }
+                                    def presentCount = clubAttendances.count { it.present }
                                     
                                     def attendanceRate = 0
-                                    if (clubAttendances.size() > 0) {
-                                        def presentCount = clubAttendances.count { it.present }
-                                        attendanceRate = (presentCount / clubAttendances.size()) * 100
+                                    if (clubStudents.size() > 0) {
+                                        attendanceRate = (presentCount / clubStudents.size()) * 100
                                     }
                                     
                                     eventData.title = "${eventTitle} - ${club.name} ${Math.round(attendanceRate)}%"
@@ -457,12 +482,15 @@ class UniversalController {
                                                         attendanceRate >= 70 ? "awana-event-medium" : 
                                                         attendanceRate > 0 ? "awana-event-low" : "awana-event-scheduled"
                                 } else {
-                                    // DEFAULT: Show cumulative percentage-based colors for ALL students across ALL clubs
-                                    def allAttendances = Attendance.findAllByAttendanceDate(meetingDate)
+                                    // DEFAULT: Calculate percentage for this specific meeting
+                                    // Get total students and attendances for this specific date
+                                    def totalStudents = universalDataService.count(Student)
+                                    def dayAttendances = Attendance.findAllByAttendanceDate(meetingDate)
+                                    def presentCount = dayAttendances.count { it.present }
+                                    
                                     def attendanceRate = 0
-                                    if (allAttendances.size() > 0) {
-                                        def presentCount = allAttendances.count { it.present }
-                                        attendanceRate = (presentCount / allAttendances.size()) * 100
+                                    if (totalStudents > 0) {
+                                        attendanceRate = (presentCount / totalStudents) * 100
                                     }
                                     
                                     eventData.title = "${eventTitle} ${Math.round(attendanceRate)}%"
@@ -736,11 +764,13 @@ class UniversalController {
         'sidebarClubStudents': { params ->
             Long clubId = params.long('clubId')
             def club = universalDataService.getById(Club, clubId)
+            def startDate = parseDate(params.start)
+            def endDate = parseDate(params.end)
             
             if (!club) {
                 return [
                     template: 'attendance/sidebarClubStudents',
-                    model: [students: []]
+                    model: [students: [], startDate: startDate, endDate: endDate]
                 ]
             }
             
@@ -748,9 +778,80 @@ class UniversalController {
                 template: 'attendance/sidebarClubStudents',
                 model: [
                     students: club.students?.sort { it.firstName },
-                    club: club
+                    club: club,
+                    startDate: startDate,
+                    endDate: endDate
                 ]
             ]
+        },
+        'updateSidebarStats': { params ->
+            // Calculate sidebar stats for current calendar view period
+            def startDate = parseDate(params.start)
+            def endDate = parseDate(params.end)
+            
+            if (!startDate || !endDate) {
+                use(TimeCategory) {
+                    startDate = startDate ?: (new Date() - 30.days)
+                    endDate = endDate ?: (new Date() + 30.days)
+                }
+            }
+            
+            def clubs = universalDataService.list(Club)
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
+            def clubAttendanceRates = [:]
+            
+            if (calendar) {
+                def dayMap = [
+                    'Sunday': java.util.Calendar.SUNDAY,
+                    'Monday': java.util.Calendar.MONDAY,
+                    'Tuesday': java.util.Calendar.TUESDAY,
+                    'Wednesday': java.util.Calendar.WEDNESDAY,
+                    'Thursday': java.util.Calendar.THURSDAY,
+                    'Friday': java.util.Calendar.FRIDAY,
+                    'Saturday': java.util.Calendar.SATURDAY
+                ]
+                def meetingDay = dayMap[calendar.dayOfWeek]
+                
+                clubs.each { club ->
+                    def clubStudents = club.students?.toList() ?: []
+                    if (clubStudents.size() > 0 && meetingDay) {
+                        // Count meetings in current view period
+                        def viewMeetingDates = []
+                        def tempCal = java.util.Calendar.getInstance()
+                        tempCal.setTime(startDate)
+                        while (tempCal.getTime() <= endDate) {
+                            if (tempCal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                                def tempMeetingDate = new Date(tempCal.getTimeInMillis())
+                                if (tempMeetingDate >= calendar.startDate && tempMeetingDate <= calendar.endDate) {
+                                    viewMeetingDates.add(tempMeetingDate)
+                                }
+                            }
+                            tempCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                        }
+                        
+                        // Calculate attendance rate using the exact formula: totalPresentCount / (enrolled × meetings) × 100
+                        def totalPresentCount = 0
+                        viewMeetingDates.each { meetingDate ->
+                            def clubAttendances = Attendance.withCriteria {
+                                eq('attendanceDate', meetingDate)
+                                'in'('student', clubStudents)
+                            }
+                            totalPresentCount += clubAttendances.count { it.present }
+                        }
+                        
+                        def totalPossibleAttendances = viewMeetingDates.size() * clubStudents.size()
+                        def rate = totalPossibleAttendances > 0 ? 
+                            Math.round((totalPresentCount / totalPossibleAttendances) * 100) : 0
+                        clubAttendanceRates[club.id] = rate
+                    } else {
+                        clubAttendanceRates[club.id] = 0
+                    }
+                }
+            }
+            
+            response.contentType = 'application/json'
+            render(clubAttendanceRates as JSON)
+            return null
         }
     ]
 

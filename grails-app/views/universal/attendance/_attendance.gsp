@@ -145,7 +145,7 @@ Loaded via: /renderView?viewType=attendance
                                             <div class="text-lg font-bold ${club.name == 'Cubbies' ? 'text-yellow-600' : club.name == 'Sparks' ? 'text-orange-600' : club.name.contains('T&T') ? 'text-blue-600' : 'text-purple-600'}">
                                                 ${clubAttendanceRates[club.id] ?: 0}%
                                             </div>
-                                            <div class="text-xs text-gray-500">30-Day Rate</div>
+                                            <div class="text-xs text-gray-500">Season Rate</div>
                                         </div>
                                     </div>
                                 </div>
@@ -384,8 +384,10 @@ Loaded via: /renderView?viewType=attendance
 
             // View change handler - updates metrics sidebar and title
             datesSet: function(dateInfo) {
+                window.currentDateInfo = dateInfo;  // Store current date info globally
                 updateMetricsSidebar(dateInfo);
                 updateCalendarTitle(dateInfo);
+                updateSidebarStats(dateInfo);
             }
         });
 
@@ -513,6 +515,7 @@ Loaded via: /renderView?viewType=attendance
     window.currentCalendarView = 'all'; // 'all', 'club', 'student'
     window.currentClubId = null;
     window.currentStudentId = null;
+    window.currentDateInfo = null;
 
     // Show students for a specific club
     function showClubStudents(clubId, clubName) {
@@ -542,8 +545,12 @@ Loaded via: /renderView?viewType=attendance
         document.getElementById('students-view').style.display = 'block';
         document.getElementById('students-view').innerHTML = '<div class="text-center py-4 text-gray-500">Loading students...</div>';
         
-        // Load students via HTMX
-        htmx.ajax('GET', '/renderView?viewType=sidebarClubStudents&clubId=' + clubId, {
+        // Load students via HTMX with current date range
+        let url = '/renderView?viewType=sidebarClubStudents&clubId=' + clubId;
+        if (window.currentDateInfo) {
+            url += '&start=' + window.currentDateInfo.startStr + '&end=' + window.currentDateInfo.endStr;
+        }
+        htmx.ajax('GET', url, {
             target: '#students-view',
             swap: 'innerHTML'
         });
@@ -615,6 +622,33 @@ Loaded via: /renderView?viewType=attendance
     function resetMetricsToOverall() {
         document.getElementById('total-students-metric').textContent = '${totalStudents ?: 0}';
         document.getElementById('total-students-metric').nextElementSibling.textContent = 'Total Students';
+    }
+
+    // Update sidebar stats based on current calendar view period
+    function updateSidebarStats(dateInfo) {
+        console.log('Updating sidebar stats for period:', dateInfo.startStr, 'to', dateInfo.endStr);
+        
+        // Call the new endpoint with current view dates
+        fetch('/renderView?viewType=updateSidebarStats&start=' + dateInfo.startStr + '&end=' + dateInfo.endStr)
+            .then(response => response.json())
+            .then(clubRates => {
+                console.log('Received sidebar stats:', clubRates);
+                
+                // Update each club's percentage in the sidebar
+                Object.entries(clubRates).forEach(([clubId, rate]) => {
+                    // Find the club element and update its percentage
+                    const clubElements = document.querySelectorAll('[onclick*="showClubStudents(' + clubId + ',"]');
+                    clubElements.forEach(clubEl => {
+                        const rateElement = clubEl.querySelector('.text-lg.font-bold');
+                        if (rateElement) {
+                            rateElement.textContent = rate + '%';
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error updating sidebar stats:', error);
+            });
     }
 </script>
 

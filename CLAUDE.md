@@ -323,6 +323,92 @@ When refactoring existing code to this pattern:
 **Root Cause:** eventClick handler fires instead of dateClick when clicking on calendar events
 **Solution:** Modify eventClick handler to navigate to attendance management for meeting events
 
+## CURRENT CRITICAL TASK: Fix Attendance Calculations
+
+**Status**: BROKEN - All attendance percentages are wrong
+**Goal**: Implement correct formulas for calendar events and sidebar stats based on current view period
+
+### Required Formulas (from user):
+```groovy
+// ---------------------------
+// Attendance Calculations
+// ---------------------------
+
+// Example input for Sept 2024
+def attendance = [
+    puggles: [1, 0, 0, 0],  // one student came on Sept 4
+    cubbies: [0, 0, 0, 0],
+    tnt:     [0, 0, 0, 0],
+    sparks:  [0, 0, 0, 0]
+]
+
+def enrolled = [
+    puggles: 2,
+    cubbies: 2,
+    tnt:     2,
+    sparks:  1
+]
+
+def meetings = 4  // 4 Wednesdays in Sept 2024
+
+// ---------------------------
+// Per-club monthly %
+def clubMonthlyPct = attendance.collectEntries { club, weeks ->
+    def totalAttended = weeks.sum()
+    def possible = enrolled[club] * meetings
+    [(club): (totalAttended / possible) * 100]
+}
+
+// ---------------------------
+// Per-club weekly % (per meeting/day)
+def clubWeeklyPct = attendance.collectEntries { club, weeks ->
+    def weeklyPercentages = weeks.collectWithIndex { attended, i ->
+        (attended / enrolled[club]) * 100
+    }
+    [(club): weeklyPercentages]
+}
+
+// ---------------------------
+// Overall monthly %
+def totalAttended = attendance.values().collect { it.sum() }.sum()
+def totalPossible = enrolled.values().sum() * meetings
+def overallMonthlyPct = (totalAttended / totalPossible) * 100
+
+// ---------------------------
+// Season % (multiple months)
+// Pass a list of months, each month having its own attendance + meetings
+def calcSeasonPct = { seasonAttendance, seasonEnrolled, seasonMeetings ->
+    def totalAtt = 0
+    def totalPoss = 0
+    seasonAttendance.eachWithIndex { monthAttendance, idx ->
+        def m = seasonMeetings[idx]
+        def e = seasonEnrolled
+        totalAtt += monthAttendance.values().collect { it.sum() }.sum()
+        totalPoss += e.values().sum() * m
+    }
+    return (totalAtt / totalPoss) * 100
+}
+
+// EXPECTED RESULTS:
+// Per Club Monthly %: [puggles:12.5, cubbies:0.0, tnt:0.0, sparks:0.0]
+// Per Club Weekly %: [puggles:[50.0, 0.0, 0.0, 0.0], cubbies:[0.0, 0.0, 0.0, 0.0], tnt:[0.0, 0.0, 0.0, 0.0], sparks:[0.0, 0.0, 0.0, 0.0]]
+// Overall Monthly %: 3.571428571428571
+// Overall Season %: 3.571428571428571
+```
+
+### Current Problems:
+1. **Calendar shows 2%** - should be 14% (1 present ÷ 7 total students)
+2. **Cubbies sidebar shows 1%** - should be 12.5% monthly, 50% weekly/daily
+3. **Dynamic sidebar not working** - percentages don't change with view
+4. **Student filtering broken** - clicking student doesn't filter calendar
+
+### Implementation Plan:
+1. Fix calendar percentage calculation (per view period)
+2. Fix sidebar calculation (per view period) 
+3. Wire up dynamic sidebar updates
+4. Fix student calendar filtering
+5. Test all view types (Month/Week/Day)
+
 ## Development Progress Status
 
 ### ✅ COMPLETED FEATURES

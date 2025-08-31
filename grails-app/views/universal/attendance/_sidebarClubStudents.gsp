@@ -22,18 +22,59 @@
             <!-- Quick attendance status -->
             <div class="mt-2 flex items-center space-x-1">
                 <% 
-                    // Calculate recent attendance rate
-                    def thirtyDaysAgo
-                    use(groovy.time.TimeCategory) {
-                        thirtyDaysAgo = new Date() - 30.days
+                    // Calculate attendance rate for current view period
+                    def calendar = awana.Calendar.list([sort: 'id', order: 'desc'])?.find()
+                    def viewStartDate = startDate ?: calendar?.startDate  
+                    def viewEndDate = endDate ?: calendar?.endDate
+                    
+                    def attendanceRate = 0
+                    if (calendar && viewStartDate && viewEndDate) {
+                        // Get meetings in view period
+                        def dayMap = [
+                            'Sunday': java.util.Calendar.SUNDAY,
+                            'Monday': java.util.Calendar.MONDAY,
+                            'Tuesday': java.util.Calendar.TUESDAY,
+                            'Wednesday': java.util.Calendar.WEDNESDAY,
+                            'Thursday': java.util.Calendar.THURSDAY,
+                            'Friday': java.util.Calendar.FRIDAY,
+                            'Saturday': java.util.Calendar.SATURDAY
+                        ]
+                        def meetingDay = dayMap[calendar.dayOfWeek]
+                        
+                        def viewMeetingDates = []
+                        def tempCal = java.util.Calendar.getInstance()
+                        tempCal.setTime(viewStartDate)
+                        while (tempCal.getTime() <= viewEndDate) {
+                            if (tempCal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                                def tempMeetingDate = new Date(tempCal.getTimeInMillis())
+                                if (tempMeetingDate >= calendar.startDate && tempMeetingDate <= calendar.endDate) {
+                                    viewMeetingDates.add(tempMeetingDate)
+                                }
+                            }
+                            tempCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                        }
+                        
+                        // Calculate attendance using exact formula: presentCount / (1 student × meetings) × 100
+                        def sdf = new java.text.SimpleDateFormat('yyyy-MM-dd')
+                        def totalPresentCount = 0
+                        viewMeetingDates.each { meetingDate ->
+                            def attendance = student.attendances?.find { att ->
+                                att.attendanceDate && meetingDate && 
+                                sdf.format(att.attendanceDate) == sdf.format(meetingDate)
+                            }
+                            if (attendance?.present) {
+                                totalPresentCount++
+                            }
+                        }
+                        
+                        def totalPossibleAttendances = viewMeetingDates.size()  // 1 student × meetings
+                        attendanceRate = totalPossibleAttendances > 0 ? 
+                            (totalPresentCount / totalPossibleAttendances) * 100 : 0
                     }
-                    def recentAttendances = student.attendances?.findAll { it.attendanceDate > thirtyDaysAgo } ?: []
-                    def attendanceRate = recentAttendances.size() > 0 ? 
-                        (recentAttendances.count { it.present } / recentAttendances.size()) * 100 : 0
                 %>
                 <div class="flex items-center space-x-1">
                     <div class="w-2 h-2 rounded-full ${attendanceRate >= 80 ? 'bg-green-400' : attendanceRate >= 60 ? 'bg-yellow-400' : 'bg-red-400'}"></div>
-                    <span class="text-xs text-gray-600">${Math.round(attendanceRate)}% recent</span>
+                    <span class="text-xs text-gray-600">${Math.round(attendanceRate)}% period</span>
                 </div>
             </div>
         </div>
