@@ -308,6 +308,18 @@ Loaded via: /renderView?viewType=attendance
             // Event styling
             eventClassNames: function(arg) {
                 if (arg.event.extendedProps.type === 'meeting') {
+                    // For individual student events, check the present property
+                    if (arg.event.extendedProps.hasOwnProperty('present')) {
+                        if (arg.event.extendedProps.present === true) {
+                            return ['awana-event-high'];  // Green for present
+                        } else if (arg.event.extendedProps.present === false) {
+                            return ['awana-event-low'];   // Red for absent
+                        } else {
+                            return ['awana-event-scheduled']; // Gray for no record
+                        }
+                    }
+                    
+                    // For club/aggregate events, use attendance rate
                     const attendance = arg.event.extendedProps.attendanceRate || 0;
                     if (attendance >= 90) return ['awana-event-high'];
                     if (attendance >= 70) return ['awana-event-medium'];
@@ -604,9 +616,11 @@ Loaded via: /renderView?viewType=attendance
 
 <!-- Custom CSS for calendar events using Tailwind colors -->
 <style>
-.awana-event-high {
+.awana-event-high,
+.fc-event.awana-event-high {
     background-color: rgb(16 185 129) !important; /* green-500 */
     border-color: rgb(5 150 105) !important;       /* green-600 */
+    color: white !important;
 }
 
 .awana-event-medium {
@@ -614,14 +628,18 @@ Loaded via: /renderView?viewType=attendance
     border-color: rgb(217 119 6) !important;       /* amber-600 */
 }
 
-.awana-event-low {
+.awana-event-low,
+.fc-event.awana-event-low {
     background-color: rgb(239 68 68) !important;   /* red-500 */
     border-color: rgb(220 38 38) !important;       /* red-600 */
+    color: white !important;
 }
 
-.awana-event-scheduled {
+.awana-event-scheduled,
+.fc-event.awana-event-scheduled {
     background-color: rgb(107 114 128) !important; /* gray-500 */
     border-color: rgb(75 85 99) !important;        /* gray-600 */
+    color: white !important;
 }
 
 .awana-event-holiday {

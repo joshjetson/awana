@@ -588,7 +588,7 @@ class UniversalController {
                             
                             // Only include dates within the calendar season
                             if (meetingDate >= calendar.startDate && meetingDate <= calendar.endDate) {
-                                def eventTitle = "Awana Meeting"
+                                def eventTitle = "Awana"
                                 if (calendar.timeRangeDisplay) {
                                     eventTitle += " (${calendar.timeRangeDisplay})"
                                 }
