@@ -1,0 +1,185 @@
+{
+  "bookDomainAnalysis": {
+    "investigationMethod": "Traced frontend usage back to actual backend data sources via viewRenderMap and domain relationships",
+    
+    "actualBookDomainRelationships": {
+      
+      "VERIFIED_FRONTEND_TEMPLATES": {
+        
+        "_verseCompletion.gsp": {
+          "dataSource": "verseCompletion viewRenderMap",
+          "backendLogic": "clubs.each { club -> club.books?.each { book -> chapters.addAll(book.chapters) } }",
+          "actualBookConnection": "DIRECT - Gets chapters from club.books collection",
+          "frontendUsage": [
+            "Line 79-81: Chapter dropdown from ${chapters} variable",
+            "Line 80: chapter.name and chapter.sectionVerse display"
+          ],
+          "domainChain": "Club -> Book -> Chapter",
+          "impactAssessment": "CRITICAL - Core verse completion functionality",
+          "changeRequired": "Yes - chapter selection logic needs individual student books"
+        },
+
+        "_chapterSections.gsp": {
+          "dataSource": "chapterSections viewRenderMap", 
+          "backendLogic": "chapter = universalDataService.getById(Chapter, chapterId); sections = chapter?.chapterSections",
+          "actualBookConnection": "INDIRECT - Chapter belongsTo Book, sections from chapter",
+          "frontendUsage": [
+            "Line 1-35: Section iteration from ${sections} variable",
+            "Line 7: section.sectionNumber display",
+            "Line 12-28: Silver/Gold section identification"
+          ],
+          "domainChain": "Chapter -> Book (via belongsTo)",
+          "impactAssessment": "HIGH - Section selection for verse completion", 
+          "changeRequired": "Yes - section loading must account for individual student books"
+        },
+
+        "_clubBooks.gsp": {
+          "dataSource": "clubBooks viewRenderMap",
+          "backendLogic": "club = universalDataService.getById(Club, clubId); allBooks = universalDataService.list(Book)",
+          "actualBookConnection": "DIRECT - Manages Book entities and Club.books relationship",
+          "frontendUsage": [
+            "Line 23-46: club.books iteration and display",
+            "Line 30: book.chapters?.size() count",
+            "Line 53-71: allBooks iteration for available books",
+            "Line 77-88: New book creation form"
+          ],
+          "domainChain": "Club -> Book (hasMany), Book -> Chapter (hasMany)",
+          "impactAssessment": "HIGH - Core book management interface",
+          "changeRequired": "Yes - distinguish curriculum books from student books"
+        },
+
+        "_clubsList.gsp": {
+          "dataSource": "clubs viewRenderMap",
+          "backendLogic": "clubs = universalDataService.list(Club)",
+          "actualBookConnection": "INDIRECT - Shows club.books?.size() count",
+          "frontendUsage": [
+            "Line 44: club.books?.size() ?: 0 display",
+            "Line 63-69: Manage Books button navigation"
+          ],
+          "domainChain": "Club -> Book (hasMany)",
+          "impactAssessment": "MEDIUM - Display book count statistics",
+          "changeRequired": "Yes - book count display needs updating"
+        },
+
+        "_clubOverview.gsp": {
+          "dataSource": "clubOverview viewRenderMap", 
+          "backendLogic": "students = club?.students",
+          "actualBookConnection": "INDIRECT - Links to verse completion which uses books",
+          "frontendUsage": [
+            "Line 71-78: Verse Progress button navigation to verseCompletion"
+          ],
+          "domainChain": "Navigation -> verseCompletion -> Club -> Book -> Chapter",
+          "impactAssessment": "MEDIUM - Navigation to book-related functionality",
+          "changeRequired": "Possibly - depends on how individual student books affect navigation"
+        },
+
+        "_studentList.gsp": {
+          "dataSource": "Various viewRenderMaps that include students",
+          "backendLogic": "students collection with sectionVerseCompletions relationship",
+          "actualBookConnection": "INDIRECT - sectionVerseCompletions -> ChapterSection -> Chapter -> Book", 
+          "frontendUsage": [
+            "Line 37: student.sectionVerseCompletions?.size() display"
+          ],
+          "domainChain": "Student -> SectionVerseCompletion -> ChapterSection -> Chapter -> Book",
+          "impactAssessment": "MEDIUM - Shows verse completion progress",
+          "changeRequired": "Yes - completion counts must reflect individual book progress"
+        },
+
+        "_studentSearch.gsp": {
+          "dataSource": "studentSearch viewRenderMap",
+          "backendLogic": "Filter and navigation logic",
+          "actualBookConnection": "INDIRECT - Navigation to verseCompletion system",
+          "frontendUsage": [
+            "Line 19: 'recentCompletions' filter",
+            "Line 52: Navigation to verseCompletion&studentId",
+            "Line 59: 'Verses' progress link"
+          ],
+          "domainChain": "Navigation -> verseCompletion -> Book domain",
+          "impactAssessment": "MEDIUM - Search and navigation",
+          "changeRequired": "Possibly - search filters may need updating"
+        }
+      },
+
+      "FALSE_ASSOCIATIONS_REMOVED": {
+        "handBookAttendanceFields": {
+          "files": [
+            "_familyCheckIn.gsp",
+            "_studentAttendanceDetail.gsp", 
+            "_attendanceClubStudents.gsp"
+          ],
+          "investigation": "attendance?.hasHandbook is just a Boolean field in Attendance domain",
+          "actualConnection": "NONE - hasHandbook is not related to Book domain entities",
+          "explanation": "Attendance.hasHandbook is a simple boolean tracking if student brought handbook, not connected to Book entities"
+        },
+        
+        "globalFunctionReferences": {
+          "files": ["index.gsp"],
+          "investigation": "window.showVerseCompletion = showVerseCompletion is just function export",
+          "actualConnection": "NONE - Just JavaScript function reference",
+          "explanation": "No actual Book domain data passed or processed"
+        },
+
+        "cssClassesAndSectionLabels": {
+          "files": ["Various templates with 'section' in CSS classes"],
+          "investigation": "Hero Section, Create Club Section etc. are just UI labels",
+          "actualConnection": "NONE - Just CSS classes and UI section labels",
+          "explanation": "Template sections and CSS classes are not domain entities"
+        }
+      }
+    },
+
+    "backendBookDomainSources": {
+      "viewRenderMapEntries": {
+        "verseCompletion": {
+          "logic": "clubs.each { club -> club.books?.each { book -> chapters.addAll(book.chapters) } }",
+          "bookConnection": "DIRECT - Iterates through Club.books to build chapters list"
+        },
+        "chapterSections": {
+          "logic": "chapter = universalDataService.getById(Chapter, chapterId); sections = chapter?.chapterSections", 
+          "bookConnection": "INDIRECT - Chapter belongsTo Book"
+        },
+        "clubBooks": {
+          "logic": "club = universalDataService.getById(Club, clubId); allBooks = universalDataService.list(Book)",
+          "bookConnection": "DIRECT - Manages Book entities and relationships"
+        }
+      },
+
+      "domainRelationships": {
+        "Club": "hasMany = [books: Book]",
+        "Book": "belongsTo = [club: Club], hasMany = [chapters: Chapter]", 
+        "Chapter": "belongsTo = [book: Book], hasMany = [chapterSections: ChapterSection]",
+        "ChapterSection": "belongsTo = [chapter: Chapter]",
+        "SectionVerseCompletion": "belongsTo = [chapterSection: ChapterSection]",
+        "Student": "hasMany = [sectionVerseCompletions: SectionVerseCompletion]"
+      }
+    },
+
+    "correctedFilesToModify": {
+      "critical": [
+        "/grails-app/domain/awana/Book.groovy",
+        "/grails-app/domain/awana/Student.groovy", 
+        "/grails-app/domain/awana/Club.groovy",
+        "/grails-app/services/awana/BootstrapService.groovy",
+        "/grails-app/views/universal/books/_verseCompletion.gsp"
+      ],
+      "high": [
+        "/grails-app/controllers/awana/UniversalController.groovy",
+        "/grails-app/views/universal/books/_chapterSections.gsp",
+        "/grails-app/views/universal/clubs/_clubBooks.gsp",
+        "/grails-app/domain/awana/Calendar.groovy"
+      ],
+      "medium": [
+        "/grails-app/views/universal/clubs/_clubsList.gsp",
+        "/grails-app/views/universal/clubs/_clubOverview.gsp",
+        "/grails-app/views/universal/students/_studentList.gsp",
+        "/grails-app/views/universal/students/_studentSearch.gsp"
+      ],
+      "removedFalseAssociations": [
+        "/grails-app/views/universal/checkin/_familyCheckIn.gsp - hasHandbook is Attendance boolean, not Book domain",
+        "/grails-app/views/universal/attendance/_studentAttendanceDetail.gsp - hasHandbook is Attendance boolean, not Book domain", 
+        "/grails-app/views/universal/attendance/_attendanceClubStudents.gsp - hasHandbook is Attendance boolean, not Book domain",
+        "/grails-app/views/universal/index.gsp - Just function reference, no Book data"
+      ]
+    }
+  }
+}
