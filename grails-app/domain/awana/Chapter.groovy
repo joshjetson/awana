@@ -5,8 +5,7 @@ class Chapter {
     String name
     Integer chapterNumber
     String chapterImage
-    String sectionVerse
-    String parentVerse
+
 
     static belongsTo = [book: Book]
     static hasMany = [chapterSections: ChapterSection]
@@ -15,15 +14,11 @@ class Chapter {
         name blank: false, nullable: false
         chapterNumber nullable: false, min: 1
         chapterImage nullable: true
-        sectionVerse nullable: true
-        parentVerse nullable: true
     }
 
     static mapping = {
         version false
         chapterImage type: 'text'
-        sectionVerse type: 'text'
-        parentVerse type: 'text'
     }
 
     String toString() {

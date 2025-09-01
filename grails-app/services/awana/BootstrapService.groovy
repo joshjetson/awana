@@ -139,10 +139,10 @@ class BootstrapService {
         ).save(failOnError: true)
         
         // Create chapters for Cubbies
-        createChapter(book, 1, "God Made Everything", "In the beginning God created the heavens and the earth. Genesis 1:1", "The Lord God made them all. Psalm 104:24")
-        createChapter(book, 2, "God Made Me Special", "I praise you because I am fearfully and wonderfully made. Psalm 139:14", "Children are a heritage from the Lord. Psalm 127:3")
-        createChapter(book, 3, "God Loves Me", "God so loved the world that he gave his one and only Son. John 3:16", "See what great love the Father has lavished on us. 1 John 3:1")
-        createChapter(book, 4, "Jesus Is God's Son", "For God so loved the world that he gave his one and only Son. John 3:16", "This is my Son, whom I love. Matthew 3:17")
+        createChapter(book, 1, "God Made Everything")
+        createChapter(book, 2, "God Made Me Special")
+        createChapter(book, 3, "God Loves Me")
+        createChapter(book, 4, "Jesus Is God's Son")
         
         log.info("Created Cubbies book: ${book.name}")
     }
@@ -167,10 +167,10 @@ class BootstrapService {
         ).save(failOnError: true)
         
         // Create chapters for HangGlider
-        createChapter(hangGlider, 1, "God", "In the beginning God created the heavens and the earth. Genesis 1:1", "Great is the Lord and most worthy of praise. Psalm 96:4")
-        createChapter(hangGlider, 2, "Jesus", "For God so loved the world that he gave his one and only Son. John 3:16", "Jesus Christ is the same yesterday and today and forever. Hebrews 13:8") 
-        createChapter(hangGlider, 3, "Salvation", "For all have sinned and fall short of the glory of God. Romans 3:23", "If we confess our sins, he is faithful and just. 1 John 1:9")
-        createChapter(hangGlider, 4, "The Bible", "All Scripture is God-breathed and is useful for teaching. 2 Timothy 3:16", "Your word is a lamp for my feet. Psalm 119:105")
+        createChapter(hangGlider, 1, "God")
+        createChapter(hangGlider, 2, "Jesus") 
+        createChapter(hangGlider, 3, "Salvation")
+        createChapter(hangGlider, 4, "The Bible")
         
         log.info("Created Sparks books: HangGlider, WingRunner, SkyStormer")
     }
@@ -183,10 +183,10 @@ class BootstrapService {
         ).save(failOnError: true)
         
         // Create chapters for T&T
-        createChapter(book, 1, "Starting Line", "In the beginning was the Word, and the Word was with God, and the Word was God. John 1:1", "These are written that you may believe. John 20:31")
-        createChapter(book, 2, "God", "I am the Alpha and the Omega, says the Lord God. Revelation 1:8", "Great is the Lord and most worthy of praise. Psalm 145:3")
-        createChapter(book, 3, "Jesus Christ", "And we know that the Son of God has come. 1 John 5:20", "Jesus Christ is the same yesterday and today and forever. Hebrews 13:8")
-        createChapter(book, 4, "Salvation", "For it is by grace you have been saved, through faith. Ephesians 2:8", "Everyone who calls on the name of the Lord will be saved. Romans 10:13")
+        createChapter(book, 1, "Starting Line")
+        createChapter(book, 2, "God")
+        createChapter(book, 3, "Jesus Christ")
+        createChapter(book, 4, "Salvation")
         
         log.info("Created T&T book: ${book.name}")
     }
@@ -199,20 +199,18 @@ class BootstrapService {
         ).save(failOnError: true)
         
         // Create chapters for Trek
-        createChapter(book, 1, "Faith", "Now faith is confidence in what we hope for. Hebrews 11:1", "Without faith it is impossible to please God. Hebrews 11:6")
-        createChapter(book, 2, "Prayer", "This, then, is how you should pray: 'Our Father in heaven...' Matthew 6:9", "Pray continually. 1 Thessalonians 5:17")
-        createChapter(book, 3, "Bible Study", "All Scripture is God-breathed and is useful for teaching. 2 Timothy 3:16", "Study to show yourself approved. 2 Timothy 2:15")
+        createChapter(book, 1, "Faith")
+        createChapter(book, 2, "Prayer")
+        createChapter(book, 3, "Bible Study")
         
         log.info("Created Trek book: ${book.name}")
     }
 
-    private Chapter createChapter(Book book, Integer chapterNumber, String name, String sectionVerse, String parentVerse) {
+    private Chapter createChapter(Book book, Integer chapterNumber, String name) {
         Chapter chapter = new Chapter(
             book: book,
             chapterNumber: chapterNumber,
-            name: name,
-            sectionVerse: sectionVerse,
-            parentVerse: parentVerse
+            name: name
         ).save(failOnError: true)
         
         // Create regular sections

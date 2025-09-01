@@ -8,7 +8,7 @@ class ChapterSection {
     Boolean isGoldSection = false
 
     static belongsTo = [chapter: Chapter]
-    static hasMany = [completions: SectionVerseCompletion]
+    static hasMany = [completions: SectionVerseCompletion, verses: Verse]
 
     static constraints = {
         sectionNumber blank: false, nullable: false

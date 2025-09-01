@@ -3,6 +3,7 @@ package awana
 class SectionVerseCompletion {
 
     Date completionDate
+    Boolean reviewCompleted = false
     Boolean studentCompleted = false
     Boolean parentCompleted = false
     Boolean silverSectionCompleted = false
@@ -36,6 +37,7 @@ class SectionVerseCompletion {
         
         if (studentCompleted) bucks += 1
         if (parentCompleted) bucks += 2
+        if (reviewCompleted) bucks += 1
         if (silverSectionCompleted) bucks += 1
         if (goldSectionCompleted) bucks += 3
         
@@ -54,7 +56,7 @@ class SectionVerseCompletion {
     }
 
     Boolean hasAnyCompletion() {
-        return studentCompleted || parentCompleted || silverSectionCompleted || goldSectionCompleted
+        return studentCompleted || parentCompleted || silverSectionCompleted || goldSectionCompleted || reviewCompleted
     }
 
     String getCompletionSummary() {
@@ -62,6 +64,7 @@ class SectionVerseCompletion {
         
         if (studentCompleted) completed << "Student Verse"
         if (parentCompleted) completed << "Parent Verse"
+        if (reviewCompleted) completed << "Review Verse"
         if (silverSectionCompleted) completed << "Silver Section"
         if (goldSectionCompleted) completed << "Gold Section"
         
@@ -72,6 +75,7 @@ class SectionVerseCompletion {
         Integer total = 0
         if (studentCompleted) total++
         if (parentCompleted) total++
+        if (reviewCompleted) total++
         if (silverSectionCompleted) total++
         if (goldSectionCompleted) total++
         return total

@@ -77,7 +77,7 @@
                         hx-swap="innerHTML">
                     <option value="">Choose a chapter...</option>
                     <g:each in="${chapters}" var="chapter">
-                        <option value="${chapter.id}">${chapter.name} - ${chapter.sectionVerse}</option>
+                        <option value="${chapter.id}">${chapter.name}</option>
                     </g:each>
                 </select>
             </div>

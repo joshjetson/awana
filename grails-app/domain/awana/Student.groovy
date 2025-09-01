@@ -11,6 +11,7 @@ class Student {
 
     static belongsTo = [household: Household, club: Club]
     static hasMany = [attendances: Attendance, sectionVerseCompletions: SectionVerseCompletion]
+    Book book
 
     static constraints = {
         firstName blank: false, nullable: false
@@ -21,6 +22,7 @@ class Student {
         isActive nullable: false
         household nullable: false
         club nullable: true
+        book nullable: true
     }
 
     static mapping = {
