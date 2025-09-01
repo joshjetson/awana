@@ -76,8 +76,8 @@ class BootstrapService {
             startDate: startDate,
             endDate: endDate,
             dayOfWeek: "Wednesday",
-            startTime: "18:30",
-            endTime: "20:00",
+            startTime: java.time.LocalTime.of(18, 30),
+            endTime: java.time.LocalTime.of(20, 0),
             description: "Awana 2024-2025 School Year"
         ).save(failOnError: true)
         

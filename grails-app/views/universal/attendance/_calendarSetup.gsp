@@ -124,7 +124,7 @@ Loaded via: /renderView?viewType=calendarSetup
                                 <input type="time" 
                                        id="startTime" 
                                        name="startTime" 
-                                       value="${calendar?.startTime ?: ''}"
+                                       value="<fmt:timeInput time='${calendar?.startTime}'/>"
                                        required
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                             </div>
@@ -135,7 +135,7 @@ Loaded via: /renderView?viewType=calendarSetup
                                 <input type="time" 
                                        id="endTime" 
                                        name="endTime" 
-                                       value="${calendar?.endTime ?: ''}"
+                                       value="<fmt:timeInput time='${calendar?.endTime}'/>"
                                        required
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm">
                             </div>

@@ -313,8 +313,8 @@ Loaded via: /renderView?viewType=attendance
             
             // Time settings for agenda views
             <g:if test="${calendar.startTime && calendar.endTime}">
-            slotMinTime: '${calendar.startTime}',
-            slotMaxTime: '${calendar.endTime}',
+            slotMinTime: '<fmt:timeInput time="${calendar.startTime}"/>',
+            slotMaxTime: '<fmt:timeInput time="${calendar.endTime}"/>',
             </g:if>
             </g:if>
 

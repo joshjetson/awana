@@ -1,12 +1,13 @@
 package awana
+import java.time.LocalTime
 
 class Calendar {
 
     Date startDate
     Date endDate
     String dayOfWeek
-    String startTime
-    String endTime
+    LocalTime startTime
+    LocalTime endTime
     String description
 
     static hasMany = [attendances: Attendance]
@@ -15,8 +16,8 @@ class Calendar {
         startDate nullable: false
         endDate nullable: false
         dayOfWeek blank: false, nullable: false, inList: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        startTime nullable: true, blank: false
-        endTime nullable: true, blank: false
+        startTime nullable: true
+        endTime nullable: true
         description nullable: true
     }
 
@@ -29,6 +30,26 @@ class Calendar {
         def startStr = startDate ? dateFormat.format(startDate) : 'null'
         def endStr = endDate ? dateFormat.format(endDate) : 'null'
         return "${description ?: 'Awana Calendar'} (${startStr} - ${endStr})"
+    }
+    
+    // Essential convenience methods for clean GSP usage
+    String getStartTimeDisplay() {
+        if (!startTime) return ''
+        def formatter = java.time.format.DateTimeFormatter.ofPattern('h:mm a')
+        return startTime.format(formatter)
+    }
+    
+    String getEndTimeDisplay() {
+        if (!endTime) return ''
+        def formatter = java.time.format.DateTimeFormatter.ofPattern('h:mm a')
+        return endTime.format(formatter)
+    }
+    
+    String getTimeRangeDisplay() {
+        if (startTime && endTime) {
+            return "${getStartTimeDisplay()} - ${getEndTimeDisplay()}"
+        }
+        return ''
     }
 
     List<Date> getAttendanceDates() {

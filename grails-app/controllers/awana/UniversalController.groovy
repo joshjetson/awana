@@ -34,6 +34,35 @@ class UniversalController {
             return null // Return null to let caller handle the fallback
         }
     }
+    
+    /**
+     * Preprocess Calendar params to convert time strings to LocalTime objects
+     */
+    private Map preprocessCalendarTimeFields(Map params) {
+        Map processedParams = new HashMap(params)
+        
+        // Convert startTime from "HH:mm" string to LocalTime
+        if (params.startTime && params.startTime instanceof String) {
+            try {
+                processedParams.startTime = java.time.LocalTime.parse(params.startTime)
+            } catch (Exception e) {
+                log.warn("Invalid startTime format: ${params.startTime}")
+                processedParams.remove('startTime') // Remove invalid value
+            }
+        }
+        
+        // Convert endTime from "HH:mm" string to LocalTime  
+        if (params.endTime && params.endTime instanceof String) {
+            try {
+                processedParams.endTime = java.time.LocalTime.parse(params.endTime)
+            } catch (Exception e) {
+                log.warn("Invalid endTime format: ${params.endTime}")
+                processedParams.remove('endTime') // Remove invalid value
+            }
+        }
+        
+        return processedParams
+    }
 
     /**
      * Dynamic view rendering map using closures
@@ -481,9 +510,9 @@ class UniversalController {
                             
                             // Only include dates within the calendar season
                             if (meetingDate >= calendar.startDate && meetingDate <= calendar.endDate) {
-                                def eventTitle = "A"
-                                if (calendar.startTime && calendar.endTime) {
-                                    eventTitle += " (${calendar.startTime.format('h:mm a')} - ${calendar.endTime.format('h:mm a')})"
+                                def eventTitle = "Awana Meeting"
+                                if (calendar.timeRangeDisplay) {
+                                    eventTitle += " (${calendar.timeRangeDisplay})"
                                 }
                                 
                                 def sdf = new SimpleDateFormat("yyyy-MM-dd")
@@ -1165,7 +1194,11 @@ class UniversalController {
         }
 
         try {
-            def instance = universalDataService.save(domainClass, params)
+            // Handle Calendar LocalTime conversion before save
+            Map processedParams = (domainClass == Calendar) ? 
+                preprocessCalendarTimeFields(params) : params
+            
+            def instance = universalDataService.save(domainClass, processedParams)
             
             
             if (instance) {
@@ -1225,7 +1258,11 @@ class UniversalController {
         }
 
         try {
-            def instance = universalDataService.update(domainClass, id, params)
+            // Handle Calendar LocalTime conversion before update
+            Map processedParams = (domainClass == Calendar) ? 
+                preprocessCalendarTimeFields(params) : params
+            
+            def instance = universalDataService.update(domainClass, id, processedParams)
 
             if (instance) {
                 if (isHtmxRequest()) {
