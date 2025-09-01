@@ -1082,6 +1082,14 @@ input,
   max-height: calc(95vh - 120px);
 }
 
+.max-h-96 {
+  max-height: 24rem;
+}
+
+.max-h-\[440px\] {
+  max-height: 440px;
+}
+
 .min-h-\[120px\] {
   min-height: 120px;
 }

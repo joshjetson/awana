@@ -281,7 +281,7 @@ class UniversalController {
             def attendanceMetrics = [:]
             if (calendar) {
                 use(TimeCategory) {
-                    // Get current month meetings
+                    // Get current month meetings for meetings count
                     def currentMonthEnd = new Date()
                     def currentMonthStart = currentMonthEnd - 30.days
                     
@@ -291,18 +291,70 @@ class UniversalController {
                         attendance.attendanceDate >= currentMonthStart && attendance.attendanceDate <= currentMonthEnd
                     }
                     
-                    // Calculate metrics
+                    // Keep monthly calculation for any legacy code that might need it
                     def sdf = new SimpleDateFormat('yyyy-MM-dd')
-                    def totalMeetingDates = thisMonthAttendances.collect { sdf.format(it.attendanceDate) }.unique()
-                    attendanceMetrics.totalMeetings = totalMeetingDates.size()
-                    attendanceMetrics.meetingsCompleted = totalMeetingDates.size()
+                    def monthlyMeetingDates = thisMonthAttendances.collect { sdf.format(it.attendanceDate) }.unique()
+                    // (Note: attendanceMetrics.totalMeetings and meetingsCompleted will be overridden by season calculation below)
                     
-                    if (thisMonthAttendances.size() > 0) {
-                        def presentCount = thisMonthAttendances.count { it.present }
-                        attendanceMetrics.averageAttendance = (presentCount / thisMonthAttendances.size()) * 100
-                    } else {
-                        attendanceMetrics.averageAttendance = 0
+                    // Calculate SEASON-WIDE average attendance using proper formula like club calculations
+                    def dayMap = [
+                        'Sunday': java.util.Calendar.SUNDAY,
+                        'Monday': java.util.Calendar.MONDAY,
+                        'Tuesday': java.util.Calendar.TUESDAY,
+                        'Wednesday': java.util.Calendar.WEDNESDAY,
+                        'Thursday': java.util.Calendar.THURSDAY,
+                        'Friday': java.util.Calendar.FRIDAY,
+                        'Saturday': java.util.Calendar.SATURDAY
+                    ]
+                    def meetingDay = dayMap[calendar.dayOfWeek]
+                    
+                    // Count all meetings in the season so far (up to today)
+                    def seasonMeetingDates = []
+                    def tempCal = java.util.Calendar.getInstance()
+                    tempCal.setTime(calendar.startDate)
+                    def today = new Date()
+                    
+                    println("Season debug - Calendar start: ${calendar.startDate}")
+                    println("Season debug - Calendar end: ${calendar.endDate}")
+                    println("Season debug - Today: ${today}")
+                    println("Season debug - Meeting day: ${calendar.dayOfWeek} (${meetingDay})")
+                    
+                    while (tempCal.getTime() <= calendar.endDate) {
+                        if (tempCal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                            seasonMeetingDates.add(new Date(tempCal.getTimeInMillis()))
+                        }
+                        tempCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
                     }
+                    
+                    println("Season debug - Meeting dates found: ${seasonMeetingDates.size()}")
+                    if (seasonMeetingDates.size() < 10) {
+                        seasonMeetingDates.each { println("  Meeting: ${it}") }
+                    }
+                    
+                    // Calculate season meetings - total meetings vs meetings that have passed
+                    attendanceMetrics.totalMeetings = seasonMeetingDates.size()  // Use actual count, not hardcoded 36
+                    def pastMeetings = seasonMeetingDates.findAll { it <= today }
+                    attendanceMetrics.meetingsCompleted = pastMeetings.size()
+                    
+                    println("Season meetings debug - Total: ${attendanceMetrics.totalMeetings}, Completed: ${attendanceMetrics.meetingsCompleted}")
+                    
+                    // Calculate total possible vs actual present
+                    def totalPresentCount = 0
+                    seasonMeetingDates.each { meetingDate ->
+                        def dayAttendances = Attendance.findAllByAttendanceDate(meetingDate)
+                        totalPresentCount += dayAttendances.count { it.present }
+                    }
+                    
+                    def totalPossibleAttendances = seasonMeetingDates.size() * totalStudents
+                    attendanceMetrics.averageAttendance = totalPossibleAttendances > 0 ? 
+                        (totalPresentCount / totalPossibleAttendances) * 100 : 0
+                    
+                    // Debug season average calculation
+                    println("Season average debug - Students: ${totalStudents}")
+                    println("Season average debug - Meetings so far: ${seasonMeetingDates.size()}")
+                    println("Season average debug - Present count: ${totalPresentCount}")
+                    println("Season average debug - Total possible: ${totalPossibleAttendances}")
+                    println("Season average debug - Calculated average: ${Math.round(attendanceMetrics.averageAttendance * 10) / 10}%")
                 }
             }
             
@@ -429,9 +481,9 @@ class UniversalController {
                             
                             // Only include dates within the calendar season
                             if (meetingDate >= calendar.startDate && meetingDate <= calendar.endDate) {
-                                def eventTitle = "Awana Meeting"
+                                def eventTitle = "A"
                                 if (calendar.startTime && calendar.endTime) {
-                                    eventTitle += " (${calendar.startTime} - ${calendar.endTime})"
+                                    eventTitle += " (${calendar.startTime.format('h:mm a')} - ${calendar.endTime.format('h:mm a')})"
                                 }
                                 
                                 def sdf = new SimpleDateFormat("yyyy-MM-dd")
@@ -785,20 +837,50 @@ class UniversalController {
             ]
         },
         'updateSidebarStats': { params ->
-            // Calculate sidebar stats for current calendar view period
-            def startDate = parseDate(params.start)
-            def endDate = parseDate(params.end)
+            // Calculate sidebar stats - for monthly view, use actual month, not calendar display range
+            def viewStartDate = parseDate(params.start)
+            def viewEndDate = parseDate(params.end)
             
-            if (!startDate || !endDate) {
-                use(TimeCategory) {
-                    startDate = startDate ?: (new Date() - 30.days)
-                    endDate = endDate ?: (new Date() + 30.days)
-                }
+            // Determine if this is a monthly view by checking if date range spans more than 35 days
+            def daysBetween = (viewEndDate.time - viewStartDate.time) / (1000 * 60 * 60 * 24)
+            
+            def startDate, endDate
+            if (daysBetween > 35) {
+                // This is likely a monthly view - use the actual month from the middle date
+                def middleTime = (viewStartDate.time + viewEndDate.time) / 2
+                def middleDate = new Date(middleTime as long)
+                def cal = java.util.Calendar.getInstance()
+                cal.setTime(middleDate)
+                
+                // Set to first day of this month
+                cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                cal.set(java.util.Calendar.MINUTE, 0)
+                cal.set(java.util.Calendar.SECOND, 0)
+                cal.set(java.util.Calendar.MILLISECOND, 0)
+                startDate = cal.getTime()
+                
+                // Set to last day of this month  
+                cal.set(java.util.Calendar.DAY_OF_MONTH, cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH))
+                cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                cal.set(java.util.Calendar.MINUTE, 59)
+                cal.set(java.util.Calendar.SECOND, 59)
+                endDate = cal.getTime()
+            } else {
+                // Weekly or daily view - use the exact date range
+                startDate = viewStartDate
+                endDate = viewEndDate
             }
             
             def clubs = universalDataService.list(Club)
             def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
             def clubAttendanceRates = [:]
+            
+            // Debug info (only show for September to avoid spam)
+            if (viewStartDate.toString().contains("Sep")) {
+                println("updateSidebarStats - Original range: ${viewStartDate} to ${viewEndDate} (${daysBetween} days)")
+                println("updateSidebarStats - Adjusted range: ${startDate} to ${endDate}")
+            }
             
             if (calendar) {
                 def dayMap = [
@@ -842,6 +924,12 @@ class UniversalController {
                         def totalPossibleAttendances = viewMeetingDates.size() * clubStudents.size()
                         def rate = totalPossibleAttendances > 0 ? 
                             Math.round((totalPresentCount / totalPossibleAttendances) * 100) : 0
+                        
+                        // Debug logging for Cubbies
+                        if (club.name == 'Cubbies') {
+                            println("Cubbies - Students: ${clubStudents.size()}, Meetings: ${viewMeetingDates.size()}, Present: ${totalPresentCount}, Possible: ${totalPossibleAttendances}, Rate: ${rate}%")
+                        }
+                        
                         clubAttendanceRates[club.id] = rate
                     } else {
                         clubAttendanceRates[club.id] = 0

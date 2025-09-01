@@ -19,7 +19,7 @@ Loaded via: /renderView?viewType=attendance
                 <div class="flex space-x-6">
                     <div class="text-center">
                         <div class="text-2xl font-bold text-white" id="avg-attendance-metric">
-                            ${attendanceMetrics?.averageAttendance ? Math.round(attendanceMetrics.averageAttendance) : '--'}%
+                            ${attendanceMetrics?.averageAttendance ? (Math.round(attendanceMetrics.averageAttendance * 10) / 10) : '--'}%
                         </div>
                         <div class="text-blue-100 text-xs">Average Attendance</div>
                     </div>
@@ -27,7 +27,7 @@ Loaded via: /renderView?viewType=attendance
                         <div class="text-2xl font-bold text-white" id="meetings-completed-metric">
                             ${attendanceMetrics?.meetingsCompleted ?: 0}/${attendanceMetrics?.totalMeetings ?: 0}
                         </div>
-                        <div class="text-blue-100 text-xs">Meetings This Month</div>
+                        <div class="text-blue-100 text-xs">Meetings This Season</div>
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold text-white" id="total-students-metric">
@@ -130,7 +130,7 @@ Loaded via: /renderView?viewType=attendance
                     </div>
                     
                     <!-- Scrollable Content Area -->
-                    <div class="flex-1 overflow-y-auto p-4" id="sidebar-content">
+                    <div class="flex-1 overflow-y-auto p-4 max-h-[440px]" id="sidebar-content">
                         <!-- Club Controls (Default View) -->
                         <div id="clubs-view" class="space-y-3">
                             <g:each in="${clubs}" var="club">
@@ -145,7 +145,7 @@ Loaded via: /renderView?viewType=attendance
                                             <div class="text-lg font-bold ${club.name == 'Cubbies' ? 'text-yellow-600' : club.name == 'Sparks' ? 'text-orange-600' : club.name.contains('T&T') ? 'text-blue-600' : 'text-purple-600'}">
                                                 ${clubAttendanceRates[club.id] ?: 0}%
                                             </div>
-                                            <div class="text-xs text-gray-500">Season Rate</div>
+                                            <div class="text-xs text-gray-500">Monthly Rate</div>
                                         </div>
                                     </div>
                                 </div>
@@ -636,12 +636,17 @@ Loaded via: /renderView?viewType=attendance
                 
                 // Update each club's percentage in the sidebar
                 Object.entries(clubRates).forEach(([clubId, rate]) => {
+                    console.log('Updating club', clubId, 'to', rate + '%');
                     // Find the club element and update its percentage
-                    const clubElements = document.querySelectorAll('[onclick*="showClubStudents(' + clubId + ',"]');
+                    const clubElements = document.querySelectorAll('[onclick*="showClubStudents(\'' + clubId + '\',"]');
+                    console.log('Found', clubElements.length, 'club elements for club', clubId);
                     clubElements.forEach(clubEl => {
                         const rateElement = clubEl.querySelector('.text-lg.font-bold');
                         if (rateElement) {
+                            console.log('Updating rate element from', rateElement.textContent, 'to', rate + '%');
                             rateElement.textContent = rate + '%';
+                        } else {
+                            console.log('No rate element found for club', clubId);
                         }
                     });
                 });
