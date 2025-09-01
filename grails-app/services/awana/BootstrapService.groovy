@@ -214,29 +214,27 @@ class BootstrapService {
         ).save(failOnError: true)
         
         // Create regular sections
-        createChapterSection(chapter, "1", "Introduction", false, false)
-        createChapterSection(chapter, "2", "Bible Story", false, false) 
-        createChapterSection(chapter, "3", "Memory Verse", false, false)
-        createChapterSection(chapter, "4", "Application", false, false)
+        createChapterSection(chapter, "1", "Introduction")
+        createChapterSection(chapter, "2", "Bible Story") 
+        createChapterSection(chapter, "3", "Memory Verse")
+        createChapterSection(chapter, "4", "Application")
         
-        // Create silver sections
-        createChapterSection(chapter, "S1", "Extra Activity 1", true, false)
-        createChapterSection(chapter, "S2", "Extra Activity 2", true, false)
+        // Create extra sections
+        createChapterSection(chapter, "S1", "Extra Activity 1")
+        createChapterSection(chapter, "S2", "Extra Activity 2")
         
-        // Create gold sections  
-        createChapterSection(chapter, "G1", "Advanced Study", false, true)
-        createChapterSection(chapter, "G2", "Scripture Memory Challenge", false, true)
+        // Create advanced sections  
+        createChapterSection(chapter, "G1", "Advanced Study")
+        createChapterSection(chapter, "G2", "Scripture Memory Challenge")
         
         return chapter
     }
 
-    private ChapterSection createChapterSection(Chapter chapter, String sectionNumber, String content, Boolean isSilver, Boolean isGold) {
+    private ChapterSection createChapterSection(Chapter chapter, String sectionNumber, String content) {
         return new ChapterSection(
             chapter: chapter,
             sectionNumber: sectionNumber,
-            content: content,
-            isSilverSection: isSilver,
-            isGoldSection: isGold
+            content: content
         ).save(failOnError: true)
     }
 

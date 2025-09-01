@@ -30,11 +30,11 @@ class Chapter {
     }
 
     List<ChapterSection> getSilverSections() {
-        return chapterSections?.findAll { it.isSilverSection } ?: []
+        return []
     }
 
     List<ChapterSection> getGoldSections() {
-        return chapterSections?.findAll { it.isGoldSection } ?: []
+        return []
     }
 
     Integer getTotalSections() {

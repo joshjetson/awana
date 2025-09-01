@@ -94,7 +94,7 @@ class Calendar {
 
         Integer totalSections = 0
         for (Chapter chapter : chapters) {
-            List<ChapterSection> sections = chapter.getOrderedSections().findAll { !it.isSilverSection && !it.isGoldSection }
+            List<ChapterSection> sections = chapter.getOrderedSections()
             if (totalSections + sections.size() >= weekNum) {
                 Integer sectionIndex = weekNum - totalSections - 1
                 return sections[sectionIndex]

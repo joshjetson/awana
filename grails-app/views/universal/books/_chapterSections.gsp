@@ -7,24 +7,11 @@
                 <h4 class="font-semibold text-gray-900">Section ${section.sectionNumber}</h4>
                 <p class="text-sm text-gray-600 mt-1">${section.content}</p>
                 
-                <!-- Section badges -->
+                <!-- Section info -->
                 <div class="mt-2 flex space-x-2">
-                    <g:if test="${section.isSilverSection}">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/>
-                            </svg>
-                            Silver Section
-                        </span>
-                    </g:if>
-                    <g:if test="${section.isGoldSection}">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                            </svg>
-                            Gold Section
-                        </span>
-                    </g:if>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Regular Section
+                    </span>
                 </div>
             </div>
             <div class="text-sm text-gray-500">
