@@ -442,6 +442,83 @@ class UniversalController {
                 }
             }
             
+            // Calculate monthly rates for sidebar (current month)
+            def clubMonthlyRates = [:]
+            if (calendar) {
+                use(TimeCategory) {
+                    def today = new Date()
+                    def cal = java.util.Calendar.getInstance()
+                    cal.setTime(today)
+                    
+                    // Set to first day of current month
+                    cal.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                    cal.set(java.util.Calendar.HOUR_OF_DAY, 0)
+                    cal.set(java.util.Calendar.MINUTE, 0)
+                    cal.set(java.util.Calendar.SECOND, 0)
+                    cal.set(java.util.Calendar.MILLISECOND, 0)
+                    def monthStart = cal.getTime()
+                    
+                    // Set to last day of current month  
+                    cal.set(java.util.Calendar.DAY_OF_MONTH, cal.getActualMaximum(java.util.Calendar.DAY_OF_MONTH))
+                    cal.set(java.util.Calendar.HOUR_OF_DAY, 23)
+                    cal.set(java.util.Calendar.MINUTE, 59)
+                    cal.set(java.util.Calendar.SECOND, 59)
+                    def monthEnd = cal.getTime()
+                    
+                    def dayMap = [
+                        'Sunday': java.util.Calendar.SUNDAY,
+                        'Monday': java.util.Calendar.MONDAY,
+                        'Tuesday': java.util.Calendar.TUESDAY,
+                        'Wednesday': java.util.Calendar.WEDNESDAY,
+                        'Thursday': java.util.Calendar.THURSDAY,
+                        'Friday': java.util.Calendar.FRIDAY,
+                        'Saturday': java.util.Calendar.SATURDAY
+                    ]
+                    def meetingDay = dayMap[calendar.dayOfWeek]
+                    
+                    clubs.each { club ->
+                        def clubStudents = club.students?.toList() ?: []
+                        if (clubStudents.size() > 0 && meetingDay) {
+                            // Count meetings in current month
+                            def monthMeetingDates = []
+                            def tempCal = java.util.Calendar.getInstance()
+                            tempCal.setTime(monthStart)
+                            while (tempCal.getTime() <= monthEnd) {
+                                if (tempCal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
+                                    def tempMeetingDate = new Date(tempCal.getTimeInMillis())
+                                    if (tempMeetingDate >= calendar.startDate && tempMeetingDate <= calendar.endDate) {
+                                        monthMeetingDates.add(tempMeetingDate)
+                                    }
+                                }
+                                tempCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                            }
+                            
+                            if (monthMeetingDates.size() > 0) {
+                                // Calculate monthly attendance rate
+                                def totalPresentCount = 0
+                                monthMeetingDates.each { meetingDate ->
+                                    def clubAttendances = Attendance.withCriteria {
+                                        eq('attendanceDate', meetingDate)
+                                        'in'('student', clubStudents)
+                                    }
+                                    totalPresentCount += clubAttendances.count { it.present }
+                                }
+                                
+                                def totalPossibleAttendances = monthMeetingDates.size() * clubStudents.size()
+                                def rate = totalPossibleAttendances > 0 ? 
+                                    Math.round((totalPresentCount / totalPossibleAttendances) * 100) : 0
+                                
+                                clubMonthlyRates[club.id] = rate
+                            } else {
+                                clubMonthlyRates[club.id] = 0
+                            }
+                        } else {
+                            clubMonthlyRates[club.id] = 0
+                        }
+                    }
+                }
+            }
+            
             return [
                 template: 'attendance/attendance',
                 model: [
@@ -449,7 +526,8 @@ class UniversalController {
                     clubs: clubs,
                     totalStudents: totalStudents,
                     attendanceMetrics: attendanceMetrics,
-                    clubAttendanceRates: clubAttendanceRates
+                    clubAttendanceRates: clubAttendanceRates,
+                    clubMonthlyRates: clubMonthlyRates
                 ]
             ]
         },

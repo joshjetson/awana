@@ -143,7 +143,7 @@ Loaded via: /renderView?viewType=attendance
                                         </div>
                                         <div class="text-right">
                                             <div class="text-lg font-bold ${club.name == 'Cubbies' ? 'text-yellow-600' : club.name == 'Sparks' ? 'text-orange-600' : club.name.contains('T&T') ? 'text-blue-600' : 'text-purple-600'}">
-                                                ${clubAttendanceRates[club.id] ?: 0}%
+                                                ${clubMonthlyRates[club.id] ?: 0}%
                                             </div>
                                             <div class="text-xs text-gray-500">Monthly Rate</div>
                                         </div>
@@ -182,48 +182,24 @@ Loaded via: /renderView?viewType=attendance
             </div>
         </g:if>
 
-        <!-- Attendance Actions -->
-        <div class="grid md:grid-cols-2 gap-6">
-            <!-- Today's Attendance -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Today's Meeting</h3>
-                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-gray-600 mb-4">Mark attendance for today's Awana meeting</p>
-                <button class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors">
-                    Take Attendance
-                </button>
-            </div>
-
-            <!-- View Records -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Attendance Records</h3>
-                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                </div>
-                <p class="text-gray-600 mb-4">View and analyze attendance history</p>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">
-                    View Records
-                </button>
-            </div>
-        </div>
 
         <!-- Club Attendance Overview -->
         <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-6">Club Attendance Overview</h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-gray-900">Club Attendance Overview</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600">Full Attendance Report</span>
+                    <button class="w-10 h-10 bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             
             <div class="space-y-4">
                 <g:each in="${clubs}" var="club">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 ${club.name == 'Cubbies' ? 'bg-yellow-100' : 
@@ -243,7 +219,7 @@ Loaded via: /renderView?viewType=attendance
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="text-lg font-bold text-green-600">92%</div>
+                                <div class="text-lg font-bold text-green-600">${clubAttendanceRates[club.id] ?: 0}%</div>
                                 <div class="text-sm text-gray-500">Avg Attendance</div>
                             </div>
                         </div>
@@ -252,38 +228,6 @@ Loaded via: /renderView?viewType=attendance
             </div>
         </div>
 
-        <!-- Attendance Metrics -->
-        <div class="grid md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                    </svg>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 mb-2">87%</div>
-                <div class="text-sm text-gray-600">This Month</div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-                    </svg>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 mb-2">${totalStudents}</div>
-                <div class="text-sm text-gray-600">Total Students</div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
-                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 mb-2">12</div>
-                <div class="text-sm text-gray-600">Meetings Left</div>
-            </div>
-        </div>
     </div>
 </div>
 <script>
