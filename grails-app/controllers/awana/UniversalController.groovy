@@ -1047,6 +1047,19 @@ class UniversalController {
             response.contentType = 'application/json'
             render(clubAttendanceRates as JSON)
             return null
+        },
+        'createBook': { params ->
+            Long clubId = params.long('clubId')
+            def club = null
+            
+            if (clubId) {
+                club = universalDataService.getById(Club, clubId)
+            }
+            
+            return [
+                template: 'books/createBook',
+                model: [club: club]
+            ]
         }
     ]
 

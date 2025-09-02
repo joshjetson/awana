@@ -1,0 +1,235 @@
+<%-- 
+Create Book Form Template
+Loaded via: /renderView?viewType=createBook&clubId=123
+--%>
+
+<div class="min-h-screen bg-gray-50 pb-20">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-6">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold mb-2">Create New Book - ${club?.name}</h1>
+            <div class="text-purple-100">
+                ${club?.ageRange} • Design your Awana handbook with chapters and sections
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        
+        <!-- Back Button -->
+        <div class="bg-white rounded-xl shadow-lg p-4">
+            <button hx-get="/renderView?viewType=clubBooks&clubId=${club?.id}"
+                    hx-target="#clubs-page-content"
+                    hx-swap="innerHTML"
+                    class="flex items-center space-x-2 text-purple-600 hover:text-purple-800 font-medium">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m0 7h18"/>
+                </svg>
+                <span>Back to Book Management</span>
+            </button>
+        </div>
+
+        <!-- Book Creation Form -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Book Information</h2>
+            
+            <form id="create-book-form" hx-post="/save?domainName=Book&redirectViewType=clubBooks&redirectClubId=${club?.id}"
+                  hx-target="#clubs-page-content"
+                  hx-swap="innerHTML">
+                
+                <!-- Hidden club ID -->
+                <input type="hidden" name="club.id" value="${club?.id}">
+                
+                <!-- Book Basic Info -->
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Book Name *</label>
+                        <input type="text" 
+                               name="name" 
+                               placeholder="e.g., HangGlider, Bear Hug, Ultimate Adventure"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
+                               required>
+                        <p class="text-sm text-gray-600 mt-1">Choose a memorable name for your Awana handbook</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Book Type</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="isPrimary" value="true" class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <span class="ml-3">
+                                    <span class="font-medium text-gray-900">Primary Book</span>
+                                    <span class="block text-sm text-gray-600">Main handbook for this club</span>
+                                </span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="isPrimary" value="false" checked class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <span class="ml-3">
+                                    <span class="font-medium text-gray-900">Secondary Book</span>
+                                    <span class="block text-sm text-gray-600">Additional or advanced handbook</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chapters Section -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Chapters</h3>
+                        <button type="button" 
+                                onclick="addChapter()"
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Add Chapter</span>
+                        </button>
+                    </div>
+                    
+                    <div id="chapters-container" class="space-y-6">
+                        <!-- Chapters will be added dynamically here -->
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" 
+                            hx-get="/renderView?viewType=clubBooks&clubId=${club?.id}"
+                            hx-target="#clubs-page-content"
+                            hx-swap="innerHTML"
+                            class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-3 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Create Book
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let chapterCount = 0;
+
+function addChapter() {
+    chapterCount++;
+    const container = document.getElementById('chapters-container');
+    const chapterDiv = document.createElement('div');
+    chapterDiv.className = 'border border-gray-200 rounded-lg p-6';
+    const chapterIndex = chapterCount - 1;
+    chapterDiv.innerHTML = 
+        '<div class="flex items-center justify-between mb-4">' +
+            '<h4 class="text-md font-semibold text-gray-900">Chapter ' + chapterCount + '</h4>' +
+            '<button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm">' +
+                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>' +
+                '</svg>' +
+            '</button>' +
+        '</div>' +
+        
+        '<input type="hidden" name="chapters[' + chapterIndex + '].chapterNumber" value="' + chapterCount + '">' +
+        
+        '<div class="grid md:grid-cols-2 gap-4 mb-4">' +
+            '<div>' +
+                '<label class="block text-sm font-medium text-gray-700 mb-1">Chapter Name *</label>' +
+                '<input type="text" ' +
+                       'name="chapters[' + chapterIndex + '].name" ' +
+                       'placeholder="e.g., God, Jesus, Salvation"' +
+                       'class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"' +
+                       'required>' +
+            '</div>' +
+        '</div>' +
+        
+        '<div class="mb-4">' +
+            '<div class="flex items-center justify-between mb-2">' +
+                '<label class="block text-sm font-medium text-gray-700">Chapter Sections</label>' +
+                '<button type="button" onclick="addSection(this, ' + chapterIndex + ')" class="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1">' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>' +
+                    '</svg>' +
+                    '<span>Add Section</span>' +
+                '</button>' +
+            '</div>' +
+            '<div class="sections-container space-y-2">' +
+                '<!-- Default sections -->' +
+                '<div class="flex items-center space-x-2">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[0].sectionNumber" ' +
+                           'value="1"' +
+                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[0].content" ' +
+                           'placeholder="Introduction"' +
+                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                '</div>' +
+                '<div class="flex items-center space-x-2">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[1].sectionNumber" ' +
+                           'value="2"' +
+                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[1].content" ' +
+                           'placeholder="Bible Story"' +
+                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                '</div>' +
+                '<div class="flex items-center space-x-2">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[2].sectionNumber" ' +
+                           'value="3"' +
+                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[2].content" ' +
+                           'placeholder="Memory Verse"' +
+                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                '</div>' +
+                '<div class="flex items-center space-x-2">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[3].sectionNumber" ' +
+                           'value="4"' +
+                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                    '<input type="text" ' +
+                           'name="chapters[' + chapterIndex + '].sections[3].content" ' +
+                           'placeholder="Application"' +
+                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    container.appendChild(chapterDiv);
+}
+
+function removeChapter(button) {
+    const chapterDiv = button.closest('.border');
+    chapterDiv.remove();
+}
+
+function addSection(button, chapterIndex) {
+    const sectionsContainer = button.closest('.mb-4').querySelector('.sections-container');
+    const sectionCount = sectionsContainer.children.length;
+    
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'flex items-center space-x-2';
+    sectionDiv.innerHTML = 
+        '<input type="text" ' +
+               'name="chapters[' + chapterIndex + '].sections[' + sectionCount + '].sectionNumber" ' +
+               'value="' + (sectionCount + 1) + '"' +
+               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+        '<input type="text" ' +
+               'name="chapters[' + chapterIndex + '].sections[' + sectionCount + '].content" ' +
+               'placeholder="Section content"' +
+               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+        '<button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+            '</svg>' +
+        '</button>';
+    sectionsContainer.appendChild(sectionDiv);
+}
+
+// Add initial chapter when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    addChapter();
+});
+</script>

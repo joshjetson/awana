@@ -89,17 +89,18 @@ Loaded via: /renderView?viewType=clubBooks&clubId=123
     <!-- Create New Book -->
     <div class="mt-6 pt-6 border-t border-gray-200">
         <h3 class="font-semibold text-gray-900 mb-4">Create New Book</h3>
-        <form hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&clubId=${club.id}"
-              hx-target="#clubs-page-content"
-              hx-swap="innerHTML"
-              class="flex space-x-3">
-            <input type="hidden" name="club.id" value="${club.id}">
-            <input type="text" name="name" placeholder="Book name (e.g., HangGlider, WingRunner)" 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                Create Book
+        <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-sm text-gray-600 mb-3">Create a complete Awana handbook with chapters and sections</p>
+            <button hx-get="/renderView?viewType=createBook&clubId=${club.id}"
+                    hx-target="#clubs-page-content"
+                    hx-swap="innerHTML"
+                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <span>Create Book with Chapters</span>
             </button>
-        </form>
+        </div>
     </div>
         
         </div>
