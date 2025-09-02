@@ -4,6 +4,7 @@ class ChapterSection {
 
     String sectionNumber
     String content
+    Boolean isFinalSection = false
 
     static belongsTo = [chapter: Chapter]
     static hasMany = [completions: SectionVerseCompletion, verses: Verse]

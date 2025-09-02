@@ -42,15 +42,6 @@
 <!-- Bottom Navigation -->
 <g:render template="/components/bottomNavBar" model="[currentPage: 'clubs']"/>
 
-<script>
-// Show/hide dynamic content when it gets loaded
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    if (event.target.id === 'dynamic-content') {
-        event.target.style.display = 'block';
-        event.target.scrollIntoView({ behavior: 'smooth' });
-    }
-});
-</script>
 
 </body>
 </html>

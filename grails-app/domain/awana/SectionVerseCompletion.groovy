@@ -8,6 +8,7 @@ class SectionVerseCompletion {
     Boolean parentCompleted = false
     Boolean silverSectionCompleted = false
     Boolean goldSectionCompleted = false
+    Boolean allSectionVersesReview = false
     Integer bucksEarned = 0
 
     static belongsTo = [student: Student, chapterSection: ChapterSection]
@@ -40,6 +41,7 @@ class SectionVerseCompletion {
         if (reviewCompleted) bucks += 1
         if (silverSectionCompleted) bucks += 1
         if (goldSectionCompleted) bucks += 3
+        if (allSectionVersesReview) bucks += 5
         
         return bucks
     }
@@ -67,6 +69,7 @@ class SectionVerseCompletion {
         if (reviewCompleted) completed << "Review Verse"
         if (silverSectionCompleted) completed << "Silver Section"
         if (goldSectionCompleted) completed << "Gold Section"
+        if (allSectionVersesReview) completed << "Final Review"
         
         return completed.join(", ") ?: "No completions"
     }
@@ -78,6 +81,7 @@ class SectionVerseCompletion {
         if (reviewCompleted) total++
         if (silverSectionCompleted) total++
         if (goldSectionCompleted) total++
+        if (allSectionVersesReview) total++
         return total
     }
 }

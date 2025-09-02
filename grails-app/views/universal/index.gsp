@@ -136,11 +136,11 @@
                                 <div class="mt-2 flex flex-wrap gap-2">
                                     <g:each in="${household.students}" var="student">
                                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
-                                            ${student.club.name == 'Cubbies' ? 'bg-yellow-100 text-yellow-800' :
-                                              student.club.name == 'Sparks' ? 'bg-orange-100 text-orange-800' :
-                                              student.club.name == 'Truth & Training' ? 'bg-blue-100 text-blue-800' :
-                                              'bg-purple-100 text-purple-800'}">
-                                            ${student.firstName} (${student.club.name})
+                                            ${student.club?.name == 'Cubbies' ? 'bg-yellow-100 text-yellow-800' :
+                                              student.club?.name == 'Sparks' ? 'bg-orange-100 text-orange-800' :
+                                              student.club?.name == 'Truth & Training' ? 'bg-blue-100 text-blue-800' :
+                                              'bg-gray-100 text-gray-800'}">
+                                            ${student.firstName} (${student.club?.name ?: 'No Club'})
                                         </span>
                                     </g:each>
                                 </div>

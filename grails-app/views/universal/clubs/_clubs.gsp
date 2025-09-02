@@ -84,14 +84,14 @@ Loaded via: /renderView?viewType=clubs
 
                                 <div class="flex space-x-3">
                                     <button hx-get="/renderView?viewType=clubStudents&clubId=${club.id}" 
-                                            hx-target="#dynamic-content" 
+                                            hx-target="#clubs-page-content" 
                                             hx-swap="innerHTML"
                                             class="flex-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-center transition-colors">
                                         <div class="font-medium text-gray-900">Manage Students</div>
                                         <div class="text-xs text-gray-600">Add/Remove students</div>
                                     </button>
                                     <button hx-get="/renderView?viewType=clubBooks&clubId=${club.id}" 
-                                            hx-target="#dynamic-content" 
+                                            hx-target="#clubs-page-content" 
                                             hx-swap="innerHTML"
                                             class="flex-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-center transition-colors">
                                         <div class="font-medium text-gray-900">Manage Books</div>
@@ -101,7 +101,7 @@ Loaded via: /renderView?viewType=clubs
                                 
                                 <div class="flex justify-between mt-3">
                                     <button hx-get="/renderView?viewType=clubEdit&clubId=${club.id}" 
-                                            hx-target="#dynamic-content" 
+                                            hx-target="#clubs-page-content" 
                                             hx-swap="innerHTML"
                                             class="bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,9 +151,5 @@ This action cannot be undone. Are you absolutely sure you want to delete this cl
             </div>
         </div>
 
-        <!-- Dynamic Content Area -->
-        <div id="dynamic-content" style="display: none;">
-            <!-- Club management details will be loaded here -->
-        </div>
     </div>
 </div>
