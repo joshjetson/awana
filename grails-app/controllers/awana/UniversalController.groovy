@@ -1060,6 +1060,24 @@ class UniversalController {
                 template: 'books/createBook',
                 model: [club: club]
             ]
+        },
+        'editBook': { params ->
+            Long bookId = params.long('bookId')
+            Long clubId = params.long('clubId')
+            def book = null
+            def club = null
+            
+            if (bookId) {
+                book = universalDataService.getById(Book, bookId)
+            }
+            if (clubId) {
+                club = universalDataService.getById(Club, clubId)
+            }
+            
+            return [
+                template: 'books/createBook',
+                model: [book: book, club: club, editMode: true]
+            ]
         }
     ]
 

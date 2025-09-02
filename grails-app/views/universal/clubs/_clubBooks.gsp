@@ -44,12 +44,23 @@ Loaded via: /renderView?viewType=clubBooks&clubId=123
                                 <div class="font-medium text-gray-900">${book.name}</div>
                                 <div class="text-sm text-gray-600">${book.chapters?.size() ?: 0} chapters</div>
                             </div>
-                            <button hx-put="/api/universal/Book/${book.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club.id}&club.id="
-                                    hx-target="#clubs-page-content"
-                                    hx-swap="innerHTML"
-                                    class="text-red-600 hover:text-red-700 text-sm">
-                                Remove
-                            </button>
+                            <div class="flex items-center space-x-2">
+                                <button hx-get="/renderView?viewType=editBook&bookId=${book.id}&clubId=${club.id}"
+                                        hx-target="#clubs-page-content"
+                                        hx-swap="innerHTML"
+                                        class="text-blue-600 hover:text-blue-700 p-1"
+                                        title="Edit Book">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                <button hx-put="/api/universal/Book/${book.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club.id}&club.id="
+                                        hx-target="#clubs-page-content"
+                                        hx-swap="innerHTML"
+                                        class="text-red-600 hover:text-red-700 text-sm">
+                                    Remove
+                                </button>
+                            </div>
                         </div>
                     </g:each>
                 </g:if>
@@ -73,13 +84,24 @@ Loaded via: /renderView?viewType=clubBooks&clubId=123
                                 ${book.chapters?.size() ?: 0} chapters
                             </div>
                         </div>
-                        <button type="button"
-                                hx-put="/api/universal/Book/${book.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club.id}&club.id=${club.id}"
-                                hx-target="#clubs-page-content"
-                                hx-swap="innerHTML"
-                                class="text-blue-600 hover:text-blue-700 text-sm">
-                            Add
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button hx-get="/renderView?viewType=editBook&bookId=${book.id}&clubId=${club.id}"
+                                    hx-target="#clubs-page-content"
+                                    hx-swap="innerHTML"
+                                    class="text-gray-600 hover:text-gray-700 p-1"
+                                    title="Edit Book">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button type="button"
+                                    hx-put="/api/universal/Book/${book.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club.id}&club.id=${club.id}"
+                                    hx-target="#clubs-page-content"
+                                    hx-swap="innerHTML"
+                                    class="text-blue-600 hover:text-blue-700 text-sm">
+                                Add
+                            </button>
+                        </div>
                     </div>
                 </g:each>
             </div>

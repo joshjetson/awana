@@ -7,9 +7,9 @@ Loaded via: /renderView?viewType=createBook&clubId=123
     <!-- Header -->
     <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-6">
         <div class="max-w-4xl mx-auto">
-            <h1 class="text-2xl font-bold mb-2">Create New Book - ${club?.name}</h1>
+            <h1 class="text-2xl font-bold mb-2">${editMode ? 'Edit Book' : 'Create New Book'} - ${club?.name}</h1>
             <div class="text-purple-100">
-                ${club?.ageRange} • Design your Awana handbook with chapters and sections
+                ${club?.ageRange} • ${editMode ? 'Update your Awana handbook settings' : 'Design your Awana handbook with chapters and sections'}
             </div>
         </div>
     </div>
@@ -29,11 +29,13 @@ Loaded via: /renderView?viewType=createBook&clubId=123
             </button>
         </div>
 
-        <!-- Book Creation Form -->
+        <!-- Book ${editMode ? 'Edit' : 'Creation'} Form -->
         <div class="bg-white rounded-xl shadow-lg p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-6">Book Information</h2>
             
-            <form id="create-book-form" hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"
+            <form id="${editMode ? 'edit' : 'create'}-book-form" 
+                  <g:if test="${editMode}">hx-put="/api/universal/Book/${book?.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"</g:if>
+                  <g:else>hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"</g:else>
                   hx-target="#clubs-page-content"
                   hx-swap="innerHTML">
                 
@@ -46,6 +48,7 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                         <label class="block text-sm font-medium text-gray-700 mb-2">Book Name *</label>
                         <input type="text" 
                                name="name" 
+                               value="${book?.name ?: ''}"
                                placeholder="e.g., HangGlider, Bear Hug, Ultimate Adventure"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-lg"
                                required>
@@ -56,14 +59,14 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                         <label class="block text-sm font-medium text-gray-700 mb-2">Book Type</label>
                         <div class="space-y-3">
                             <label class="flex items-center">
-                                <input type="radio" name="isPrimary" value="true" class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <input type="radio" name="isPrimary" value="true" ${book?.isPrimary ? 'checked' : ''} class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
                                 <span class="ml-3">
                                     <span class="font-medium text-gray-900">Primary Book</span>
                                     <span class="block text-sm text-gray-600">Main handbook for this club</span>
                                 </span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" name="isPrimary" value="false" checked class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <input type="radio" name="isPrimary" value="false" ${book?.isPrimary == false || !book ? 'checked' : ''} class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-gray-300">
                                 <span class="ml-3">
                                     <span class="font-medium text-gray-900">Secondary Book</span>
                                     <span class="block text-sm text-gray-600">Additional or advanced handbook</span>
@@ -103,7 +106,7 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                     </button>
                     <button type="submit" 
                             class="px-6 py-3 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                        Create Book
+                        ${editMode ? 'Update Book' : 'Create Book'}
                     </button>
                 </div>
             </form>
