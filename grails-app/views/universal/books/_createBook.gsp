@@ -33,11 +33,11 @@ Loaded via: /renderView?viewType=createBook&clubId=123
         <div class="bg-white rounded-xl shadow-lg p-6">
             <h2 class="text-xl font-bold text-gray-900 mb-6">Book Information</h2>
             
-            <form id="create-book-form" hx-post="/save?domainName=Book&redirectViewType=clubBooks&redirectClubId=${club?.id}"
+            <form id="create-book-form" hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"
                   hx-target="#clubs-page-content"
                   hx-swap="innerHTML">
                 
-                <!-- Hidden club ID -->
+                <!-- Hidden club ID for Book-Club relationship -->
                 <input type="hidden" name="club.id" value="${club?.id}">
                 
                 <!-- Book Basic Info -->
