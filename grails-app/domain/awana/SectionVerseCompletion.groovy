@@ -2,6 +2,9 @@ package awana
 
 class SectionVerseCompletion {
 
+    Student student
+    ChapterSection chapterSection
+
     Date completionDate
     Boolean reviewCompleted = false
     Boolean studentCompleted = false
@@ -11,17 +14,17 @@ class SectionVerseCompletion {
     Boolean chapterReview = false
     Integer bucksEarned = 0
 
-    static belongsTo = [student: Student, chapterSection: ChapterSection]
+    static belongsTo = [student: Student]  // only belongs to student
 
     static constraints = {
-        completionDate nullable: false
+        chapterSection nullable: false
         studentCompleted nullable: false
         parentCompleted nullable: false
         silverSectionCompleted nullable: false
         goldSectionCompleted nullable: false
+        reviewCompleted nullable: false
+        chapterReview nullable: false
         bucksEarned nullable: false, min: 0
-        student nullable: false
-        chapterSection nullable: false
     }
 
     static mapping = {
@@ -29,32 +32,30 @@ class SectionVerseCompletion {
         completionDate index: true
     }
 
-    String toString() {
-        return "${student?.fullName} - ${chapterSection?.toString()} (${completionDate?.format('MM/dd/yyyy')})"
+    def beforeInsert() {
+        if (!completionDate) {
+            completionDate = new Date()
+        }
+        bucksEarned = calculateBucksEarned()
     }
 
-    Integer calculateBucksEarned() {
+    def beforeUpdate() {
+        bucksEarned = calculateBucksEarned()
+    }
+
+    private Integer calculateBucksEarned() {
         Integer bucks = 0
-        
         if (studentCompleted) bucks += 1
         if (parentCompleted) bucks += 2
         if (reviewCompleted) bucks += 1
         if (silverSectionCompleted) bucks += 1
         if (goldSectionCompleted) bucks += 3
         if (chapterReview) bucks += 5
-        
         return bucks
     }
 
-    def beforeInsert() {
-        bucksEarned = calculateBucksEarned()
-        if (!completionDate) {
-            completionDate = new Date()
-        }
-    }
-
-    def beforeUpdate() {
-        bucksEarned = calculateBucksEarned()
+    String toString() {
+        return "${student?.fullName} - ${chapterSection?.toString()} (${completionDate?.format('MM/dd/yyyy')})"
     }
 
     Boolean hasAnyCompletion() {

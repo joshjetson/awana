@@ -19,6 +19,7 @@ class Chapter {
     static mapping = {
         version false
         chapterImage type: 'text'
+        sort 'chapterNumber'
     }
 
     String toString() {

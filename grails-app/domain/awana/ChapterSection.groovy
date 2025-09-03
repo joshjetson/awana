@@ -7,20 +7,17 @@ class ChapterSection {
     Boolean isFinalSection = false
 
     static belongsTo = [chapter: Chapter]
-    static hasMany = [verses: Verse]
-    
-    // One completion per section (nullable)
-    SectionVerseCompletion completion
+    static hasMany = [verses: Verse, sectionVerseCompletions: SectionVerseCompletion]
 
     static constraints = {
         sectionNumber blank: false, nullable: false
         content nullable: true
-        completion nullable: true
     }
 
     static mapping = {
         version false
         content type: 'text'
+        sort 'sectionNumber'
     }
 
     String toString() {

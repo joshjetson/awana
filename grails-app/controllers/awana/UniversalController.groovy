@@ -343,11 +343,7 @@ class UniversalController {
                     tempCal.setTime(calendar.startDate)
                     def today = new Date()
                     
-                    println("Season debug - Calendar start: ${calendar.startDate}")
-                    println("Season debug - Calendar end: ${calendar.endDate}")
-                    println("Season debug - Today: ${today}")
-                    println("Season debug - Meeting day: ${calendar.dayOfWeek} (${meetingDay})")
-                    
+
                     while (tempCal.getTime() <= calendar.endDate) {
                         if (tempCal.get(java.util.Calendar.DAY_OF_WEEK) == meetingDay) {
                             seasonMeetingDates.add(new Date(tempCal.getTimeInMillis()))
@@ -355,18 +351,13 @@ class UniversalController {
                         tempCal.add(java.util.Calendar.DAY_OF_MONTH, 1)
                     }
                     
-                    println("Season debug - Meeting dates found: ${seasonMeetingDates.size()}")
-                    if (seasonMeetingDates.size() < 10) {
-                        seasonMeetingDates.each { println("  Meeting: ${it}") }
-                    }
-                    
+
                     // Calculate season meetings - total meetings vs meetings that have passed
                     attendanceMetrics.totalMeetings = seasonMeetingDates.size()  // Use actual count, not hardcoded 36
                     def pastMeetings = seasonMeetingDates.findAll { it <= today }
                     attendanceMetrics.meetingsCompleted = pastMeetings.size()
                     
-                    println("Season meetings debug - Total: ${attendanceMetrics.totalMeetings}, Completed: ${attendanceMetrics.meetingsCompleted}")
-                    
+
                     // Calculate total possible vs actual present
                     def totalPresentCount = 0
                     seasonMeetingDates.each { meetingDate ->
@@ -378,12 +369,6 @@ class UniversalController {
                     attendanceMetrics.averageAttendance = totalPossibleAttendances > 0 ? 
                         (totalPresentCount / totalPossibleAttendances) * 100 : 0
                     
-                    // Debug season average calculation
-                    println("Season average debug - Students: ${totalStudents}")
-                    println("Season average debug - Meetings so far: ${seasonMeetingDates.size()}")
-                    println("Season average debug - Present count: ${totalPresentCount}")
-                    println("Season average debug - Total possible: ${totalPossibleAttendances}")
-                    println("Season average debug - Calculated average: ${Math.round(attendanceMetrics.averageAttendance * 10) / 10}%")
                 }
             }
             
@@ -699,11 +684,17 @@ class UniversalController {
         },
         'clubBooks': { params ->
             Long clubId = params.long('refreshClubId') ?: params.long('clubId')
+            
+
             def club = universalDataService.getById(Club, clubId)
             if (club) {
                 club.refresh() // Refresh to get updated associations
+
             }
+            
             def allBooks = universalDataService.list(Book)
+
+
             return [
                 template: 'clubs/clubBooks',
                 model: [club: club, allBooks: allBooks]
@@ -983,12 +974,7 @@ class UniversalController {
             def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
             def clubAttendanceRates = [:]
             
-            // Debug info (only show for September to avoid spam)
-            if (viewStartDate.toString().contains("Sep")) {
-                println("updateSidebarStats - Original range: ${viewStartDate} to ${viewEndDate} (${daysBetween} days)")
-                println("updateSidebarStats - Adjusted range: ${startDate} to ${endDate}")
-            }
-            
+
             if (calendar) {
                 def dayMap = [
                     'Sunday': java.util.Calendar.SUNDAY,
@@ -1032,11 +1018,7 @@ class UniversalController {
                         def rate = totalPossibleAttendances > 0 ? 
                             Math.round((totalPresentCount / totalPossibleAttendances) * 100) : 0
                         
-                        // Debug logging for Cubbies
-                        if (club.name == 'Cubbies') {
-                            println("Cubbies - Students: ${clubStudents.size()}, Meetings: ${viewMeetingDates.size()}, Present: ${totalPresentCount}, Possible: ${totalPossibleAttendances}, Rate: ${rate}%")
-                        }
-                        
+
                         clubAttendanceRates[club.id] = rate
                     } else {
                         clubAttendanceRates[club.id] = 0
@@ -1052,10 +1034,12 @@ class UniversalController {
             Long clubId = params.long('clubId')
             def club = null
             
+
             if (clubId) {
                 club = universalDataService.getById(Club, clubId)
             }
             
+
             return [
                 template: 'books/createBook',
                 model: [club: club]
@@ -1067,13 +1051,16 @@ class UniversalController {
             def book = null
             def club = null
             
+
             if (bookId) {
                 book = universalDataService.getById(Book, bookId)
             }
+            
             if (clubId) {
                 club = universalDataService.getById(Club, clubId)
             }
             
+
             return [
                 template: 'books/createBook',
                 model: [book: book, club: club, editMode: true]
@@ -1357,7 +1344,6 @@ class UniversalController {
         String domainName = params.domainName
         Long id = params.long('id')
         String viewType = params.viewType   // <-- front end can pass this
-        println "${viewType} SHOULD BE THE VIEWTYPE"
 
         Class domainClass = getDomainClass(domainName)
 

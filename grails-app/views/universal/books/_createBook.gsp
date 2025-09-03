@@ -91,7 +91,71 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                     </div>
                     
                     <div id="chapters-container" class="space-y-6">
-                        <!-- Chapters will be added dynamically here -->
+                        <!-- Render existing chapters in edit mode -->
+                        <g:if test="${editMode && book?.chapters}">
+                            <g:each in="${book.chapters.sort { it.chapterNumber }}" var="chapter" status="chapterIndex">
+                                <div class="border border-gray-200 rounded-lg p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="text-md font-semibold text-gray-900">Chapter ${chapter.chapterNumber}</h4>
+                                        <button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm" style="${book.chapters.size() <= 1 ? 'display: none;' : ''}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    
+                                    <input type="hidden" name="chapters[${chapterIndex}].chapterNumber" value="${chapter.chapterNumber}">
+                                    <g:if test="${chapter.id}"><input type="hidden" name="chapters[${chapterIndex}].id" value="${chapter.id}"></g:if>
+                                    
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Chapter Name *</label>
+                                            <input type="text" 
+                                                   name="chapters[${chapterIndex}].name" 
+                                                   value="${chapter.name?.encodeAsHTML()}"
+                                                   placeholder="e.g., God, Jesus, Salvation"
+                                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                                   required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <label class="block text-sm font-medium text-gray-700">Chapter Sections</label>
+                                            <button type="button" onclick="addSection(this, ${chapterIndex})" class="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                </svg>
+                                                <span>Add Section</span>
+                                            </button>
+                                        </div>
+                                        <div class="sections-container space-y-2">
+                                            <g:each in="${chapter.chapterSections?.sort { it.sectionNumber }}" var="section" status="sectionIndex">
+                                                <div class="flex items-center space-x-2">
+                                                    <input type="text" 
+                                                           name="chapters[${chapterIndex}].chapterSections[${sectionIndex}].sectionNumber" 
+                                                           value="${section.sectionNumber?.encodeAsHTML()}"
+                                                           class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">
+                                                    <input type="text" 
+                                                           name="chapters[${chapterIndex}].chapterSections[${sectionIndex}].content" 
+                                                           value="${section.content?.encodeAsHTML()}"
+                                                           placeholder="Section content"
+                                                           class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
+                                                    <g:if test="${section.id}"><input type="hidden" name="chapters[${chapterIndex}].chapterSections[${sectionIndex}].id" value="${section.id}"></g:if>
+                                                    <button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </g:each>
+                                        </div>
+                                    </div>
+                                </div>
+                            </g:each>
+                        </g:if>
+                        
+                        <!-- In create mode, chapters will be added dynamically here -->
                     </div>
                 </div>
 
@@ -115,124 +179,158 @@ Loaded via: /renderView?viewType=createBook&clubId=123
 </div>
 
 <script>
-let chapterCount = 0;
+(function() {
+    let chapterCount = 0;
 
-function addChapter() {
-    chapterCount++;
-    const container = document.getElementById('chapters-container');
-    const chapterDiv = document.createElement('div');
-    chapterDiv.className = 'border border-gray-200 rounded-lg p-6';
-    const chapterIndex = chapterCount - 1;
-    chapterDiv.innerHTML = 
-        '<div class="flex items-center justify-between mb-4">' +
-            '<h4 class="text-md font-semibold text-gray-900">Chapter ' + chapterCount + '</h4>' +
-            '<button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm">' +
-                '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>' +
-                '</svg>' +
-            '</button>' +
-        '</div>' +
-        
-        '<input type="hidden" name="chapters[' + chapterIndex + '].chapterNumber" value="' + chapterCount + '">' +
-        
-        '<div class="grid md:grid-cols-2 gap-4 mb-4">' +
-            '<div>' +
-                '<label class="block text-sm font-medium text-gray-700 mb-1">Chapter Name *</label>' +
-                '<input type="text" ' +
-                       'name="chapters[' + chapterIndex + '].name" ' +
-                       'placeholder="e.g., God, Jesus, Salvation"' +
-                       'class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"' +
-                       'required>' +
-            '</div>' +
-        '</div>' +
-        
-        '<div class="mb-4">' +
-            '<div class="flex items-center justify-between mb-2">' +
-                '<label class="block text-sm font-medium text-gray-700">Chapter Sections</label>' +
-                '<button type="button" onclick="addSection(this, ' + chapterIndex + ')" class="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1">' +
-                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>' +
+    window.addChapter = function() {
+        chapterCount++;
+        const container = document.getElementById('chapters-container');
+        const chapterDiv = document.createElement('div');
+        chapterDiv.className = 'border border-gray-200 rounded-lg p-6';
+        const chapterIndex = chapterCount - 1;
+        chapterDiv.innerHTML = 
+            '<div class="flex items-center justify-between mb-4">' +
+                '<h4 class="text-md font-semibold text-gray-900">Chapter ' + chapterCount + '</h4>' +
+                '<button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm">' +
+                    '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>' +
                     '</svg>' +
-                    '<span>Add Section</span>' +
                 '</button>' +
             '</div>' +
-            '<div class="sections-container space-y-2">' +
-                '<!-- Default sections -->' +
-                '<div class="flex items-center space-x-2">' +
+            
+            '<input type="hidden" name="chapters[' + chapterIndex + '].chapterNumber" value="' + chapterCount + '">' +
+            
+            '<div class="grid md:grid-cols-2 gap-4 mb-4">' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-gray-700 mb-1">Chapter Name *</label>' +
                     '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[0].sectionNumber" ' +
-                           'value="1"' +
-                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[0].content" ' +
-                           'placeholder="Introduction"' +
-                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
-                '</div>' +
-                '<div class="flex items-center space-x-2">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[1].sectionNumber" ' +
-                           'value="2"' +
-                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[1].content" ' +
-                           'placeholder="Bible Story"' +
-                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
-                '</div>' +
-                '<div class="flex items-center space-x-2">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[2].sectionNumber" ' +
-                           'value="3"' +
-                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[2].content" ' +
-                           'placeholder="Memory Verse"' +
-                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
-                '</div>' +
-                '<div class="flex items-center space-x-2">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[3].sectionNumber" ' +
-                           'value="4"' +
-                           'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
-                    '<input type="text" ' +
-                           'name="chapters[' + chapterIndex + '].sections[3].content" ' +
-                           'placeholder="Application"' +
-                           'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                           'name="chapters[' + chapterIndex + '].name" ' +
+                           'placeholder="e.g., God, Jesus, Salvation"' +
+                           'class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"' +
+                           'required>' +
                 '</div>' +
             '</div>' +
-        '</div>';
-    container.appendChild(chapterDiv);
-}
+            
+            '<div class="mb-4">' +
+                '<div class="flex items-center justify-between mb-2">' +
+                    '<label class="block text-sm font-medium text-gray-700">Chapter Sections</label>' +
+                    '<button type="button" onclick="addSection(this, ' + chapterIndex + ')" class="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1">' +
+                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>' +
+                        '</svg>' +
+                        '<span>Add Section</span>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="sections-container space-y-2">' +
+                    '<!-- Default sections -->' +
+                    '<div class="flex items-center space-x-2">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[0].sectionNumber" ' +
+                               'value="1"' +
+                               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[0].content" ' +
+                               'placeholder="Introduction"' +
+                               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                    '</div>' +
+                    '<div class="flex items-center space-x-2">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[1].sectionNumber" ' +
+                               'value="2"' +
+                               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[1].content" ' +
+                               'placeholder="Bible Story"' +
+                               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                    '</div>' +
+                    '<div class="flex items-center space-x-2">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[2].sectionNumber" ' +
+                               'value="3"' +
+                               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[2].content" ' +
+                               'placeholder="Memory Verse"' +
+                               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                    '</div>' +
+                    '<div class="flex items-center space-x-2">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[3].sectionNumber" ' +
+                               'value="4"' +
+                               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+                        '<input type="text" ' +
+                               'name="chapters[' + chapterIndex + '].chapterSections[3].content" ' +
+                               'placeholder="Application"' +
+                               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        container.appendChild(chapterDiv);
+        updateRemoveButtons();
+    };
 
-function removeChapter(button) {
-    const chapterDiv = button.closest('.border');
-    chapterDiv.remove();
-}
+    window.removeChapter = function(button) {
+        const chapterDiv = button.closest('.border');
+        chapterDiv.remove();
+        updateChapterNumbers();
+        updateRemoveButtons();
+    };
 
-function addSection(button, chapterIndex) {
-    const sectionsContainer = button.closest('.mb-4').querySelector('.sections-container');
-    const sectionCount = sectionsContainer.children.length;
-    
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'flex items-center space-x-2';
-    sectionDiv.innerHTML = 
-        '<input type="text" ' +
-               'name="chapters[' + chapterIndex + '].sections[' + sectionCount + '].sectionNumber" ' +
-               'value="' + (sectionCount + 1) + '"' +
-               'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
-        '<input type="text" ' +
-               'name="chapters[' + chapterIndex + '].sections[' + sectionCount + '].content" ' +
-               'placeholder="Section content"' +
-               'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
-        '<button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">' +
-            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
-            '</svg>' +
-        '</button>';
-    sectionsContainer.appendChild(sectionDiv);
-}
+    window.addSection = function(button, chapterIndex) {
+        const sectionsContainer = button.closest('.mb-4').querySelector('.sections-container');
+        const sectionCount = sectionsContainer.children.length;
+        
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'flex items-center space-x-2';
+        sectionDiv.innerHTML = 
+            '<input type="text" ' +
+                   'name="chapters[' + chapterIndex + '].chapterSections[' + sectionCount + '].sectionNumber" ' +
+                   'value="' + (sectionCount + 1) + '"' +
+                   'class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm">' +
+            '<input type="text" ' +
+                   'name="chapters[' + chapterIndex + '].chapterSections[' + sectionCount + '].content" ' +
+                   'placeholder="Section content"' +
+                   'class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">' +
+            '<button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">' +
+                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                '</svg>' +
+            '</button>';
+        sectionsContainer.appendChild(sectionDiv);
+    };
 
-// Add initial chapter when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    addChapter();
-});
+    function updateChapterNumbers() {
+        const chapterForms = document.querySelectorAll('#chapters-container > .border');
+        chapterForms.forEach((form, index) => {
+            const header = form.querySelector('h4');
+            header.textContent = 'Chapter ' + (index + 1);
+        });
+    }
+
+    function updateRemoveButtons() {
+        const chapterForms = document.querySelectorAll('#chapters-container > .border');
+        const removeButtons = document.querySelectorAll('#chapters-container > .border button[onclick*="removeChapter"]');
+        
+        removeButtons.forEach(button => {
+            button.style.display = chapterForms.length > 1 ? 'block' : 'none';
+        });
+    }
+
+    // Add initial chapter when page loads (only in create mode)
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('chapters-container');
+        const isEditMode = ${editMode ? 'true' : 'false'};
+        
+        if (container && !isEditMode) {
+            // Only add empty chapter in create mode
+            container.innerHTML = '';
+            chapterCount = 0;
+            addChapter();
+        } else if (isEditMode) {
+            // In edit mode, set chapterCount based on existing chapters
+            const existingChapters = container.querySelectorAll('.border');
+            chapterCount = existingChapters.length;
+        }
+    });
+})();
 </script>
