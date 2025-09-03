@@ -154,25 +154,13 @@ class BootstrapService {
             isPrimary: true
         ).save(failOnError: true)
         
-        Book wingRunner = new Book(
-            name: "WingRunner", 
-            club: club,
-            isPrimary: false
-        ).save(failOnError: true)
-        
-        Book skyStormer = new Book(
-            name: "SkyStormer",
-            club: club,
-            isPrimary: false
-        ).save(failOnError: true)
-        
-        // Create chapters for HangGlider
+        // Create chapters for HangGlider only
         createChapter(hangGlider, 1, "God")
         createChapter(hangGlider, 2, "Jesus") 
         createChapter(hangGlider, 3, "Salvation")
         createChapter(hangGlider, 4, "The Bible")
         
-        log.info("Created Sparks books: HangGlider, WingRunner, SkyStormer")
+        log.info("Created Sparks book: HangGlider")
     }
 
     private void createTTBooks(Club club) {
@@ -213,19 +201,14 @@ class BootstrapService {
             name: name
         ).save(failOnError: true)
         
-        // Create regular sections
-        createChapterSection(chapter, "1", "Introduction")
-        createChapterSection(chapter, "2", "Bible Story") 
-        createChapterSection(chapter, "3", "Memory Verse")
-        createChapterSection(chapter, "4", "Application")
-        
-        // Create extra sections
-        createChapterSection(chapter, "S1", "Extra Activity 1")
-        createChapterSection(chapter, "S2", "Extra Activity 2")
-        
-        // Create advanced sections  
-        createChapterSection(chapter, "G1", "Advanced Study")
-        createChapterSection(chapter, "G2", "Scripture Memory Challenge")
+        // Create sections numbered like 1.1, 1.2, 1.3, etc.
+        createChapterSection(chapter, "${chapterNumber}.1", "Introduction")
+        createChapterSection(chapter, "${chapterNumber}.2", "Bible Story") 
+        createChapterSection(chapter, "${chapterNumber}.3", "Memory Verse")
+        createChapterSection(chapter, "${chapterNumber}.4", "Application")
+        createChapterSection(chapter, "${chapterNumber}.5", "Review Questions")
+        createChapterSection(chapter, "${chapterNumber}.6", "Prayer Time")
+        createChapterSection(chapter, "${chapterNumber}.7", "Closing Activity")
         
         return chapter
     }
@@ -284,7 +267,7 @@ class BootstrapService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd")
         Date dateOfBirth = sdf.parse(birthDate)
         
-        return new Student(
+        Student student = new Student(
             firstName: firstName,
             lastName: lastName,
             dateOfBirth: dateOfBirth,
@@ -292,5 +275,36 @@ class BootstrapService {
             club: club,
             isActive: true
         ).save(failOnError: true)
+        
+        // Create SectionVerseCompletion records for each section of each chapter in the club's books
+        createSectionVerseCompletions(student, club)
+        
+        return student
+    }
+    
+    private void createSectionVerseCompletions(Student student, Club club) {
+        // Get all books for this club
+        def books = Book.findAllByClub(club)
+        
+        books.each { book ->
+            // Get all chapters for this book (will be sorted by chapterNumber due to domain mapping)
+            book.chapters.each { chapter ->
+                // Get all sections for this chapter (will be sorted by sectionNumber due to domain mapping)
+                chapter.chapterSections.each { section ->
+                    // Create a SectionVerseCompletion record for this student and section
+                    new SectionVerseCompletion(
+                        student: student,
+                        chapterSection: section,
+                        studentCompleted: false,
+                        parentCompleted: false,
+                        silverSectionCompleted: false,
+                        goldSectionCompleted: false,
+                        bucksEarned: 0
+                    ).save(failOnError: true)
+                }
+            }
+        }
+        
+        log.info("Created SectionVerseCompletion records for student: ${student.firstName} ${student.lastName}")
     }
 }
