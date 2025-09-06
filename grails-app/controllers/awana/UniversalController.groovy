@@ -153,39 +153,23 @@ class UniversalController {
         },
         'verseCompletion': { params ->
             Long studentId = params.long('studentId')
-            String clubId = params.clubId
+            def selectedStudent = studentId ? universalDataService.getById(Student, studentId) : null
             
-            def students = []
-            def selectedStudent = null
-            
-            if (studentId) {
-                selectedStudent = universalDataService.getById(Student, studentId)
-                students = [selectedStudent]
-            } else if (clubId) {
-                def club = universalDataService.getById(Club, Long.valueOf(clubId))
-                students = club?.students ?: []
-            } else {
-                students = universalDataService.list(Student)
-            }
-
-            // Get available chapters for verse completion
-            def clubs = universalDataService.list(Club)
-            def chapters = []
-            
-            // Get all chapters from all books across all clubs for now
-            clubs.each { club ->
-                club.books?.each { book ->
-                    chapters.addAll(book.chapters ?: [])
+            // Load only the primary book with all chapters and sections (same as editBook pattern)
+            def books = []
+            if (selectedStudent?.club?.books) {
+                def primaryBook = selectedStudent.club.books.find { it.isPrimary }
+                if (primaryBook) {
+                    def fullBook = universalDataService.getById(Book, primaryBook.id)
+                    books << fullBook
                 }
             }
-
+            
             return [
                 template: 'books/verseCompletion',
                 model: [
-                    students: students,
                     selectedStudent: selectedStudent,
-                    clubs: clubs,
-                    chapters: chapters
+                    books: books
                 ]
             ]
         },
@@ -716,12 +700,33 @@ class UniversalController {
             ]
         },
         'chapterSections': { params ->
-            Long chapterId = params.long('chapterId') 
+            Long chapterId = params.long('chapterId')
+            Long studentId = params.long('studentId')
+            
+            // Load the chapter to get its book, then load the full book (exactly like editBook)
             def chapter = universalDataService.getById(Chapter, chapterId)
-            def sections = chapter?.chapterSections ?: []
+            def book = null
+            if (chapter?.book) {
+                book = universalDataService.getById(Book, chapter.book.id)
+                // Find the specific chapter within the fully loaded book
+                chapter = book.chapters?.find { it.id == chapterId }
+            }
+            
+            def sections = chapter?.chapterSections?.sort { it.sectionNumber } ?: []
+            def student = studentId ? universalDataService.getById(Student, studentId) : null
+            
+            // Get existing completions for this student and chapter
+            def completions = [:]
+            if (student && sections) {
+                sections.each { section ->
+                    def completion = SectionVerseCompletion.findByStudentAndChapterSection(student, section)
+                    completions[section.id] = completion
+                }
+            }
+            
             return [
                 template: 'books/chapterSections',
-                model: [sections: sections, chapter: chapter]
+                model: [sections: sections, chapter: chapter, student: student, completions: completions]
             ]
         },
         'createHousehold': { params ->
