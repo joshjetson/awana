@@ -699,6 +699,36 @@ class UniversalController {
                 model: [clubs: clubs, studentCount: studentCount]
             ]
         },
+        'sections': { params ->
+            Long chapterId = params.long('chapterId')
+            Long studentId = params.long('studentId')
+            
+            // Load the chapter to get its book, then load the full book (same as editBook pattern)
+            def chapter = universalDataService.getById(Chapter, chapterId)
+            def book = null
+            if (chapter?.book) {
+                book = universalDataService.getById(Book, chapter.book.id)
+                // Find the specific chapter within the fully loaded book
+                chapter = book.chapters?.find { it.id == chapterId }
+            }
+            
+            def sections = chapter?.chapterSections?.sort { it.sectionNumber } ?: []
+            def selectedStudent = studentId ? universalDataService.getById(Student, studentId) : null
+            
+            // Get existing completions for this student and chapter
+            def completions = [:]
+            if (selectedStudent && sections) {
+                sections.each { section ->
+                    def completion = SectionVerseCompletion.findByStudentAndChapterSection(selectedStudent, section)
+                    completions[section.id] = completion
+                }
+            }
+            
+            return [
+                template: 'books/sections',
+                model: [sections: sections, chapter: chapter, selectedStudent: selectedStudent, completions: completions]
+            ]
+        },
         'chapterSections': { params ->
             Long chapterId = params.long('chapterId')
             Long studentId = params.long('studentId')

@@ -1,6 +1,6 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-20">
+<div class="min-h-screen">
     <!-- Fun Header with Student Info -->
-    <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 text-white px-4 py-6 relative overflow-hidden">
+    <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 text-white px-4 py-6 relative overflow-hidden rounded-2xl">
         <!-- Background Pattern -->
         <div class="absolute inset-0 opacity-10">
             <div class="absolute top-4 left-4 w-8 h-8 border-2 border-white rounded-full"></div>
@@ -75,8 +75,9 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     <g:each in="${book.chapters.sort { it.chapterNumber }}" var="chapter">
                                         <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer chapter-card transform hover:scale-105" 
-                                             data-chapter-id="${chapter.id}" 
-                                             onclick="toggleChapterSections(${chapter.id})">
+                                             hx-get="/renderView?viewType=sections&chapterId=${chapter.id}&studentId=${selectedStudent?.id}"
+                                             hx-target="#main-content-area"
+                                             hx-swap="innerHTML">
                                             
                                             <!-- Chapter Number Badge -->
                                             <div class="flex items-center justify-between mb-3">
@@ -126,44 +127,6 @@
                                                 </g:if>
                                             </div>
                                         </div>
-                                        
-                                        <!-- Chapter Sections (initially hidden) -->
-                                        <div id="sections-${chapter.id}" class="hidden mt-4 space-y-3">
-                                            <g:each in="${chapter.chapterSections?.sort { it.sectionNumber }}" var="section">
-                                                <div class="bg-white border border-gray-200 rounded-xl p-4 ml-4">
-                                                    <div class="flex items-center justify-between mb-3">
-                                                        <div>
-                                                            <h5 class="font-bold text-gray-900">Section ${section?.sectionNumber ?: 'N/A'}</h5>
-                                                            <p class="text-sm text-gray-600">${section?.content}</p>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <!-- Completion Toggles -->
-                                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                        <!-- Student Verse -->
-                                                        <button type="button" class="bg-green-100 hover:bg-green-200 text-green-800 border border-green-300 rounded-lg p-2 text-xs font-bold transition-colors">
-                                                            Student Verse (+1)
-                                                        </button>
-                                                        <!-- Parent Verse -->
-                                                        <button type="button" class="bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300 rounded-lg p-2 text-xs font-bold transition-colors">
-                                                            Parent Verse (+2)
-                                                        </button>
-                                                        <!-- Silver Section -->
-                                                        <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 rounded-lg p-2 text-xs font-bold transition-colors">
-                                                            Silver (+1)
-                                                        </button>
-                                                        <!-- Gold Section -->
-                                                        <button type="button" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 rounded-lg p-2 text-xs font-bold transition-colors">
-                                                            Gold (+3)
-                                                        </button>
-                                                        <!-- Chapter Review -->
-                                                        <button type="button" class="bg-red-100 hover:bg-red-200 text-red-800 border border-red-300 rounded-lg p-2 text-xs font-bold transition-colors">
-                                                            Review (+5)
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </g:each>
-                                        </div>
                                     </g:each>
                                 </div>
                             </g:if>
@@ -196,35 +159,8 @@
             </g:else>
         </g:if>
 
-        <!-- Chapter Sections Modal (Hidden) - COMMENTED OUT FOR NOW -->
-        <!--
-        <div id="sections-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-end md:items-center justify-center p-4">
-            <div class="bg-white rounded-t-2xl md:rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden transform transition-all duration-300">
-                <!-- Modal Header -->
-                <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 relative">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 id="modal-chapter-title" class="text-2xl font-bold">Chapter Name</h3>
-                            <p id="modal-book-info" class="text-purple-100">Book Name</p>
-                        </div>
-                        <button onclick="closeSectionsModal()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Modal Content -->
-                <div id="modal-sections-content" class="p-6 overflow-y-auto max-h-[70vh]">
-                    <!-- Sections will be loaded here -->
-                </div>
-            </div>
-        </div>
-        -->
-        
         <!-- Success Toast (Hidden) -->
-        <div id="success-toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div id="success-toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50" hidden>
             <div class="flex items-center space-x-2">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
@@ -239,15 +175,4 @@
 <!-- Bottom Navigation -->
 <g:render template="/components/bottomNavBar" model="[currentPage: 'students']"/>
 
-<script>
-// Simple show/hide sections functionality
-const currentStudentId = ${selectedStudent?.id ?: 'null'};
-
-function toggleChapterSections(chapterId) {
-    const sectionsDiv = document.getElementById('sections-' + chapterId);
-    if (sectionsDiv) {
-        sectionsDiv.classList.toggle('hidden');
-    }
-}
-</script>
 
