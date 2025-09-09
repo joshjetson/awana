@@ -61,11 +61,11 @@
                     <button type="button"
                             class="completion-toggle ${completion?.studentCompleted ? 'bg-green-500 text-white border-green-500 shadow-lg' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'} 
                                    border-2 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-200"
-                            <g:if test="${completion}">hx-put="/api/universal/SectionVerseCompletion/${completion.id}?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"</g:if>
-                            <g:else>hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"</g:else>
+                            <g:if test="${completion}">hx-put="/api/universal/SectionVerseCompletion/${completion.id}?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"</g:if>
+                            <g:else>hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"</g:else>
                             hx-target="#modal-sections-content"
                             hx-swap="innerHTML"
-                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "${!completion?.studentCompleted}"}'>
+                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "${!completion?.studentCompleted}", "parentCompleted": "false", "reviewCompleted": "false", "silverSectionCompleted": "false", "goldSectionCompleted": "false", "chapterReview": "false"}'>
                         <div class="text-center">
                             <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -79,10 +79,10 @@
                     <button type="button"
                             class="completion-toggle ${completion?.parentCompleted ? 'bg-purple-500 text-white border-purple-500 shadow-lg' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'} 
                                    border-2 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-200"
-                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"
+                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"
                             hx-target="#modal-sections-content"
                             hx-swap="innerHTML"
-                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "parentCompleted": "${!completion?.parentCompleted}"}'>
+                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "false", "parentCompleted": "${!completion?.parentCompleted}", "reviewCompleted": "false", "silverSectionCompleted": "false", "goldSectionCompleted": "false", "chapterReview": "false"}'>
                         <div class="text-center">
                             <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -96,10 +96,10 @@
                     <button type="button"
                             class="completion-toggle ${completion?.silverSectionCompleted ? 'bg-gray-500 text-white border-gray-500 shadow-lg' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'} 
                                    border-2 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-200"
-                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"
+                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"
                             hx-target="#modal-sections-content"
                             hx-swap="innerHTML"
-                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "silverSectionCompleted": "${!completion?.silverSectionCompleted}"}'>
+                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "false", "parentCompleted": "false", "reviewCompleted": "false", "silverSectionCompleted": "${!completion?.silverSectionCompleted}", "goldSectionCompleted": "false", "chapterReview": "false"}'>
                         <div class="text-center">
                             <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -113,10 +113,10 @@
                     <button type="button"
                             class="completion-toggle ${completion?.goldSectionCompleted ? 'bg-yellow-500 text-white border-yellow-500 shadow-lg' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'} 
                                    border-2 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-yellow-200"
-                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"
+                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"
                             hx-target="#modal-sections-content"
                             hx-swap="innerHTML"
-                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "goldSectionCompleted": "${!completion?.goldSectionCompleted}"}'>
+                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "false", "parentCompleted": "false", "reviewCompleted": "false", "silverSectionCompleted": "false", "goldSectionCompleted": "${!completion?.goldSectionCompleted}", "chapterReview": "false"}'>
                         <div class="text-center">
                             <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
@@ -130,10 +130,10 @@
                     <button type="button"
                             class="completion-toggle ${completion?.chapterReview ? 'bg-red-500 text-white border-red-500 shadow-lg' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'} 
                                    border-2 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200"
-                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&studentId=${student?.id}&chapterId=${chapter?.id}"
+                            hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=chapterSections&refreshStudentId=${student?.id}&chapterId=${chapter?.id}&sectionId=${section?.id}"
                             hx-target="#modal-sections-content"
                             hx-swap="innerHTML"
-                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "chapterReview": "${!completion?.chapterReview}"}'>
+                            hx-vals='{"student.id": "${student?.id}", "chapterSection.id": "${section?.id}", "studentCompleted": "false", "parentCompleted": "false", "reviewCompleted": "false", "silverSectionCompleted": "false", "goldSectionCompleted": "false", "chapterReview": "${!completion?.chapterReview}"}'>
                         <div class="text-center">
                             <svg class="w-6 h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.09-5.09A1.5 1.5 0 0118 4.5v15A1.5 1.5 0 0116.5 21h-15A1.5 1.5 0 010 19.5v-15A1.5 1.5 0 011.5 3h15a1.5 1.5 0 011.5 1.5z"/>

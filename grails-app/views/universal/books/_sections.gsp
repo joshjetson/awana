@@ -46,7 +46,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                         <div class="flex space-x-2 overflow-x-auto pb-2">
                             <g:each in="${sections}" var="section" status="i">
                                 <button onclick="showSectionDetails('${section.id}', '${section.sectionNumber}', '${section.content?.encodeAsJavaScript()}', ${section.isFinalSection ?: false})" 
-                                        class="section-nav-item flex-shrink-0 flex items-center p-2 text-left rounded-lg hover:bg-blue-50 transition-colors ${i == 0 ? 'bg-blue-50 border-2 border-blue-500 section-active' : 'border-2 border-transparent'} min-w-[120px]"
+                                        class="section-nav-item flex-shrink-0 flex items-center p-2 text-left rounded-lg hover:bg-blue-50 transition-colors ${section.id == currentSection?.id ? 'bg-blue-50 border-2 border-blue-500 section-active' : 'border-2 border-transparent'} min-w-[120px]"
                                         data-section-id="${section.id}">
                                     <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs mr-2">
                                         ${section?.sectionNumber}
@@ -63,7 +63,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                         <g:each in="${sections}" var="section" status="i">
                             <li>
                                 <button onclick="showSectionDetails('${section.id}', '${section.sectionNumber}', '${section.content?.encodeAsJavaScript()}', ${section.isFinalSection ?: false})" 
-                                        class="section-nav-item w-full flex items-center p-2 text-left rounded-lg hover:bg-blue-50 transition-colors ${i == 0 ? 'bg-blue-50 border-l-4 border-blue-500 section-active' : 'border-l-4 border-transparent'}"
+                                        class="section-nav-item w-full flex items-center p-2 text-left rounded-lg hover:bg-blue-50 transition-colors ${section.id == currentSection?.id ? 'bg-blue-50 border-l-4 border-blue-500 section-active' : 'border-l-4 border-transparent'}"
                                         data-section-id="${section.id}">
                                     <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3">
                                         ${section?.sectionNumber}
@@ -118,19 +118,19 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
         <div class="flex-1 min-h-[60vh] md:min-h-0 overflow-y-auto">
             <div id="section-details" class="p-4">
                 <g:if test="${sections}">
-                    <!-- Default to first section -->
-                    <g:set var="firstSection" value="${sections[0]}" />
+                    <!-- Use current section or default to first section -->
+                    <g:set var="displaySection" value="${currentSection ?: sections[0]}" />
                     <div class="bg-white rounded-xl shadow-lg p-4">
                         
                         <!-- Section Header -->
                         <div class="mb-8">
                             <div class="flex items-center mb-3">
                                 <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-                                    <span id="current-section-number">${firstSection?.sectionNumber}</span>
+                                    <span id="current-section-number">${displaySection?.sectionNumber}</span>
                                 </div>
                                 <div>
-                                    <h2 id="current-section-title" class="text-2xl font-bold text-gray-900">Section ${firstSection?.sectionNumber}</h2>
-                                    <p id="current-section-content" class="text-gray-600">${firstSection?.content}</p>
+                                    <h2 id="current-section-title" class="text-2xl font-bold text-gray-900">Section ${displaySection?.sectionNumber}</h2>
+                                    <p id="current-section-content" class="text-gray-600">${displaySection?.content}</p>
                                 </div>
                             </div>
                         </div>
@@ -143,7 +143,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-8 left-2 px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-se z-10">
                                     Memory
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-green-100 hover:bg-green-200 active:bg-green-300 text-green-800 border-2 border-green-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('student', this)" class="completion-btn w-full ${sectionCompletion?.studentCompleted ? 'bg-green-500 text-white border-green-500 shadow-lg' : 'bg-green-100 hover:bg-green-200 text-green-800 border-green-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -159,7 +159,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-8 left-2 px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-se z-10">
                                     Parent
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-800 border-2 border-purple-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('parent', this)" class="completion-btn w-full ${sectionCompletion?.parentCompleted ? 'bg-purple-500 text-white border-purple-500 shadow-lg' : 'bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -175,7 +175,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-8 left-2 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-se z-10">
                                     Review
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-blue-100 hover:bg-blue-200 active:bg-blue-300 text-blue-800 border-2 border-blue-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('review', this)" class="completion-btn w-full ${sectionCompletion?.reviewCompleted ? 'bg-blue-500 text-white border-blue-500 shadow-lg' : 'bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -191,7 +191,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-8 left-2 px-2 py-1 bg-gray-500 text-white text-xs font-bold rounded-se z-10">
                                     Silver
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-800 border-2 border-gray-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('silver', this)" class="completion-btn w-full ${sectionCompletion?.silverSectionCompleted ? 'bg-gray-500 text-white border-gray-500 shadow-lg' : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -207,7 +207,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-8 left-2 px-2 py-1 bg-yellow-600 text-white text-xs font-bold rounded-se z-10">
                                     🏆 Gold
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-yellow-100 hover:bg-yellow-200 active:bg-yellow-300 text-yellow-800 border-2 border-yellow-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('gold', this)" class="completion-btn w-full ${sectionCompletion?.goldSectionCompleted ? 'bg-yellow-500 text-white border-yellow-500 shadow-lg' : 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
@@ -226,7 +226,7 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
                                 <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 px-3 py-1 bg-red-500 text-white text-sm font-bold rounded-full z-10">
                                     🎯 Chapter Review
                                 </div>
-                                <button type="button" class="completion-btn w-full bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-800 border-2 border-red-300 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
+                                <button type="button" onclick="toggleCompletion('chapter', this)" class="completion-btn w-full ${sectionCompletion?.chapterReview ? 'bg-red-500 text-white border-red-500 shadow-lg' : 'bg-red-100 hover:bg-red-200 text-red-800 border-red-300'} border-2 rounded-xl p-4 pt-6 font-bold transition-all duration-200 touch-manipulation min-h-[80px] sm:min-h-[100px]">
                                     <div class="text-center">
                                         <svg class="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.09-5.09A1.5 1.5 0 0118 4.5v15A1.5 1.5 0 0116.5 21h-15A1.5 1.5 0 010 19.5v-15A1.5 1.5 0 011.5 3h15a1.5 1.5 0 011.5 1.5z"/>
@@ -269,37 +269,122 @@ Loaded via: /renderView?viewType=sections&chapterId=123&studentId=456
     </div>
 </div>
 
+<!-- Section Completion Form -->
+<form <g:if test="${sectionCompletion?.id}">hx-put="/api/universal/SectionVerseCompletion/${sectionCompletion.id}?domainName=SectionVerseCompletion&viewType=sections&refreshStudentId=${selectedStudent?.id}&chapterId=${chapter?.id}&sectionId=${sections[0]?.id}"</g:if><g:else>hx-post="/api/universal/SectionVerseCompletion?domainName=SectionVerseCompletion&viewType=sections&refreshStudentId=${selectedStudent?.id}&chapterId=${chapter?.id}&sectionId=${sections[0]?.id}"</g:else>
+      hx-target="#main-content-area"
+      hx-swap="innerHTML"
+      hx-indicator="#save-indicator">
+    
+    <!-- Hidden relationship fields -->
+    <input type="hidden" name="student.id" value="${selectedStudent?.id}">
+    <input type="hidden" name="chapterSection.id" value="${currentSection?.id ?: sections[0]?.id}" id="current-section-id">
+    
+    <!-- Completion checkboxes (hidden, updated by button clicks) -->
+    <input type="hidden" name="studentCompleted" value="false" id="student-completed-field">
+    <input type="hidden" name="parentCompleted" value="false" id="parent-completed-field">
+    <input type="hidden" name="reviewCompleted" value="false" id="review-completed-field">
+    <input type="hidden" name="silverSectionCompleted" value="false" id="silver-completed-field">
+    <input type="hidden" name="goldSectionCompleted" value="false" id="gold-completed-field">
+    <input type="hidden" name="chapterReview" value="false" id="chapter-review-field">
+    
+    <!-- Submit Button Footer -->
+    <div class="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 p-4">
+        <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500">
+                Select completions above, then save progress
+            </div>
+            <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg 
+                                     transition-colors duration-200 flex items-center space-x-2 touch-manipulation">
+                <span id="save-indicator" class="htmx-indicator">
+                    <svg class="animate-spin w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Save Progress</span>
+            </button>
+        </div>
+    </div>
+</form>
+
 <!-- Bottom Navigation -->
 <g:render template="/components/bottomNavBar" model="[currentPage: 'students']"/>
 
 <script>
 // Section navigation functionality
 function showSectionDetails(sectionId, sectionNumber, content, isFinalSection) {
-    // Update section display
-    document.getElementById('current-section-number').textContent = sectionNumber;
-    document.getElementById('current-section-title').textContent = 'Section ' + sectionNumber;
-    document.getElementById('current-section-content').textContent = content;
+    // Make HTMX call to reload the sections template with the specific sectionId
+    var url = '/renderView?viewType=sections&chapterId=${chapter?.id}&studentId=${selectedStudent?.id}&sectionId=' + sectionId;
+    htmx.ajax('GET', url, {
+        target: '#main-content-area',
+        swap: 'innerHTML'
+    });
+}
+
+// Toggle completion state
+function toggleCompletion(type, buttonElement) {
+    const isCompleted = buttonElement.classList.contains('completed');
     
-    // Show/hide chapter review based on isFinalSection
-    const reviewContainer = document.getElementById('chapter-review-container');
-    if (reviewContainer) {
-        if (isFinalSection) {
-            reviewContainer.classList.remove('hidden');
-        } else {
-            reviewContainer.classList.add('hidden');
-        }
+    if (isCompleted) {
+        // Remove completed state
+        buttonElement.classList.remove('completed');
+        buttonElement.style.backgroundColor = '';
+        buttonElement.style.borderColor = '';
+        buttonElement.style.color = '';
+    } else {
+        // Add completed state with green styling
+        buttonElement.classList.add('completed');
+        buttonElement.style.backgroundColor = '#10B981';
+        buttonElement.style.borderColor = '#10B981';
+        buttonElement.style.color = 'white';
     }
     
-    // Update active state in navigation
-    document.querySelectorAll('.section-nav-item').forEach(item => {
-        item.classList.remove('section-active', 'bg-blue-50', 'border-blue-500');
-        item.classList.add('border-transparent');
+    // Update hidden form field
+    updateFormField(type, !isCompleted);
+}
+
+// Update hidden form fields
+function updateFormField(type, completed) {
+    switch(type) {
+        case 'student':
+            document.getElementById('student-completed-field').value = completed;
+            break;
+        case 'parent':
+            document.getElementById('parent-completed-field').value = completed;
+            break;
+        case 'review':
+            document.getElementById('review-completed-field').value = completed;
+            break;
+        case 'silver':
+            document.getElementById('silver-completed-field').value = completed;
+            break;
+        case 'gold':
+            document.getElementById('gold-completed-field').value = completed;
+            break;
+        case 'chapter':
+            document.getElementById('chapter-review-field').value = completed;
+            break;
+    }
+}
+
+// Reset all completion states
+function resetCompletions() {
+    document.querySelectorAll('.completion-btn').forEach(btn => {
+        btn.classList.remove('completed');
+        btn.style.backgroundColor = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
     });
     
-    const activeItem = document.querySelector(`[data-section-id="${sectionId}"]`);
-    if (activeItem) {
-        activeItem.classList.add('section-active', 'bg-blue-50', 'border-blue-500');
-        activeItem.classList.remove('border-transparent');
-    }
+    // Reset form fields
+    document.getElementById('student-completed-field').value = 'false';
+    document.getElementById('parent-completed-field').value = 'false';
+    document.getElementById('review-completed-field').value = 'false';
+    document.getElementById('silver-completed-field').value = 'false';
+    document.getElementById('gold-completed-field').value = 'false';
+    document.getElementById('chapter-review-field').value = 'false';
 }
 </script>

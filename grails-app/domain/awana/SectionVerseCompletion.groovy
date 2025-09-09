@@ -17,6 +17,7 @@ class SectionVerseCompletion {
     static belongsTo = [student: Student]  // only belongs to student
 
     static constraints = {
+        completionDate nullable: true  // Allow null initially, set in beforeInsert
         chapterSection nullable: false
         studentCompleted nullable: false
         parentCompleted nullable: false

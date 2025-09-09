@@ -701,7 +701,8 @@ class UniversalController {
         },
         'sections': { params ->
             Long chapterId = params.long('chapterId')
-            Long studentId = params.long('studentId')
+            Long sectionId = params.long('sectionId')
+            Long studentId = params.long('refreshStudentId') ?: params.long('studentId')
             
             // Load the chapter to get its book, then load the full book (same as editBook pattern)
             def chapter = universalDataService.getById(Chapter, chapterId)
@@ -715,23 +716,30 @@ class UniversalController {
             def sections = chapter?.chapterSections?.sort { it.sectionNumber } ?: []
             def selectedStudent = studentId ? universalDataService.getById(Student, studentId) : null
             
-            // Get existing completions for this student and chapter
-            def completions = [:]
+            // Get completion for the specific section (or first section if no sectionId)
+            def sectionCompletion = null
+            def currentSection = null
             if (selectedStudent && sections) {
-                sections.each { section ->
-                    def completion = SectionVerseCompletion.findByStudentAndChapterSection(selectedStudent, section)
-                    completions[section.id] = completion
+                if (sectionId) {
+                    currentSection = universalDataService.getById(ChapterSection, sectionId)
+                } else {
+                    currentSection = sections[0] // Default to first section
+                }
+                
+                if (currentSection) {
+                    sectionCompletion = SectionVerseCompletion.findByStudentAndChapterSection(selectedStudent, currentSection)
                 }
             }
             
             return [
                 template: 'books/sections',
-                model: [sections: sections, chapter: chapter, selectedStudent: selectedStudent, completions: completions]
+                model: [sections: sections, chapter: chapter, selectedStudent: selectedStudent, sectionCompletion: sectionCompletion, currentSection: currentSection]
             ]
         },
         'chapterSections': { params ->
             Long chapterId = params.long('chapterId')
-            Long studentId = params.long('studentId')
+            Long sectionId = params.long('sectionId')
+            Long studentId = params.long('refreshStudentId') ?: params.long('studentId')
             
             // Load the chapter to get its book, then load the full book (exactly like editBook)
             def chapter = universalDataService.getById(Chapter, chapterId)
@@ -745,12 +753,15 @@ class UniversalController {
             def sections = chapter?.chapterSections?.sort { it.sectionNumber } ?: []
             def student = studentId ? universalDataService.getById(Student, studentId) : null
             
-            // Get existing completions for this student and chapter
+            // Get fresh completion data for this student and all sections
             def completions = [:]
             if (student && sections) {
                 sections.each { section ->
+                    // Force fresh query by using findBy instead of cached relationships
                     def completion = SectionVerseCompletion.findByStudentAndChapterSection(student, section)
-                    completions[section.id] = completion
+                    if (completion) {
+                        completions[section.id] = completion
+                    }
                 }
             }
             
