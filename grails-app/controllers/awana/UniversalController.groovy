@@ -5,6 +5,8 @@ import grails.plugin.springsecurity.annotation.Secured
 import grails.util.GrailsNameUtils
 import groovy.time.TimeCategory
 import java.text.SimpleDateFormat
+import java.time.*
+import java.time.temporal.ChronoUnit
 
 @Secured(['ROLE_USER', 'ROLE_ADMIN'])
 class UniversalController {
@@ -44,7 +46,7 @@ class UniversalController {
         // Convert startTime from "HH:mm" string to LocalTime
         if (params.startTime && params.startTime instanceof String) {
             try {
-                processedParams.startTime = java.time.LocalTime.parse(params.startTime)
+                processedParams.startTime = LocalTime.parse(params.startTime)
             } catch (Exception e) {
                 log.warn("Invalid startTime format: ${params.startTime}")
                 processedParams.remove('startTime') // Remove invalid value
@@ -54,7 +56,7 @@ class UniversalController {
         // Convert endTime from "HH:mm" string to LocalTime  
         if (params.endTime && params.endTime instanceof String) {
             try {
-                processedParams.endTime = java.time.LocalTime.parse(params.endTime)
+                processedParams.endTime = LocalTime.parse(params.endTime)
             } catch (Exception e) {
                 log.warn("Invalid endTime format: ${params.endTime}")
                 processedParams.remove('endTime') // Remove invalid value
@@ -117,9 +119,11 @@ class UniversalController {
                         title = "Top Performers"
                         break
                     case 'recentCompletions':
+                        def weekAgo = LocalDate.now().minus(7, ChronoUnit.DAYS)
+                        def weekAgoDate = Date.from(weekAgo.atStartOfDay(ZoneId.systemDefault()).toInstant())
                         def recentCompletions = SectionVerseCompletion.findAll(
                             "FROM SectionVerseCompletion WHERE completionDate >= :weekAgo ORDER BY completionDate DESC",
-                            [weekAgo: new Date() - 7]
+                            [weekAgo: weekAgoDate]
                         ).take(20)
                         students = recentCompletions.collect { it.student }.unique()
                         title = "Recent Verse Completions"

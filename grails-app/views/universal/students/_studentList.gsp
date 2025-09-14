@@ -14,10 +14,13 @@ Used when showing filtered student results
     <g:if test="${students}">
         <div class="space-y-3">
             <g:each in="${students}" var="student">
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer student-card" 
-                     data-student-id="${student.id}"
-                     onclick="showVerseCompletion(${student.id})">
-                    
+                <div type="button"
+                        hx-get="/renderView?viewType=verseCompletion&studentId=${student.id}"
+                        hx-target="#main-content-area"
+                        hx-swap="innerHTML"
+                        class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer student-card"
+                >
+
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">

@@ -8,7 +8,7 @@
             <div class="absolute bottom-6 left-12 w-4 h-4 bg-white rounded-full"></div>
             <div class="absolute bottom-4 right-16 w-5 h-5 border-2 border-white rounded"></div>
         </div>
-        
+
         <div class="max-w-4xl mx-auto relative z-10">
             <!-- Back Button -->
             <button hx-get="/renderView?viewType=clubOverview&clubId=${selectedStudent?.club?.id}"
@@ -20,7 +20,7 @@
                 </svg>
                 <span>Back to ${selectedStudent?.club?.name}</span>
             </button>
-            
+
             <g:if test="${selectedStudent}">
                 <div class="flex items-center space-x-4">
                     <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-2xl border-4 border-white shadow-lg">
@@ -49,7 +49,7 @@
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        
+
         <g:if test="${selectedStudent}">
             <!-- Student's Primary Book -->
             <g:if test="${books}">
@@ -78,7 +78,7 @@
                                              hx-get="/renderView?viewType=sections&chapterId=${chapter.id}&studentId=${selectedStudent?.id}"
                                              hx-target="#main-content-area"
                                              hx-swap="innerHTML">
-                                            
+
                                             <!-- Chapter Number Badge -->
                                             <div class="flex items-center justify-between mb-3">
                                                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
