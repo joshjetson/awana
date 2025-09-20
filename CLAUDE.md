@@ -313,101 +313,8 @@ When refactoring existing code to this pattern:
 ### 📋 TODO
 - [ ] Add search bar to attendance management header (in blue banner area)
 - [ ] Implement student search results with attendance records
-- [ ] Add club selection with attendance percentages
-- [ ] Test individual student attendance detail view
-- [ ] Verify buck calculation based on attendance
-- [ ] Add bulk attendance marking functionality
+- [x] Add club selection with attendance percentages
 
-### 🎯 CURRENT ISSUE
-**Problem:** User clicks on "Awana Meeting" event in calendar but nothing happens
-**Root Cause:** eventClick handler fires instead of dateClick when clicking on calendar events
-**Solution:** Modify eventClick handler to navigate to attendance management for meeting events
-
-## CURRENT CRITICAL TASK: Fix Attendance Calculations
-
-**Status**: BROKEN - All attendance percentages are wrong
-**Goal**: Implement correct formulas for calendar events and sidebar stats based on current view period
-
-### Required Formulas (from user):
-```groovy
-// ---------------------------
-// Attendance Calculations
-// ---------------------------
-
-// Example input for Sept 2024
-def attendance = [
-    puggles: [1, 0, 0, 0],  // one student came on Sept 4
-    cubbies: [0, 0, 0, 0],
-    tnt:     [0, 0, 0, 0],
-    sparks:  [0, 0, 0, 0]
-]
-
-def enrolled = [
-    puggles: 2,
-    cubbies: 2,
-    tnt:     2,
-    sparks:  1
-]
-
-def meetings = 4  // 4 Wednesdays in Sept 2024
-
-// ---------------------------
-// Per-club monthly %
-def clubMonthlyPct = attendance.collectEntries { club, weeks ->
-    def totalAttended = weeks.sum()
-    def possible = enrolled[club] * meetings
-    [(club): (totalAttended / possible) * 100]
-}
-
-// ---------------------------
-// Per-club weekly % (per meeting/day)
-def clubWeeklyPct = attendance.collectEntries { club, weeks ->
-    def weeklyPercentages = weeks.collectWithIndex { attended, i ->
-        (attended / enrolled[club]) * 100
-    }
-    [(club): weeklyPercentages]
-}
-
-// ---------------------------
-// Overall monthly %
-def totalAttended = attendance.values().collect { it.sum() }.sum()
-def totalPossible = enrolled.values().sum() * meetings
-def overallMonthlyPct = (totalAttended / totalPossible) * 100
-
-// ---------------------------
-// Season % (multiple months)
-// Pass a list of months, each month having its own attendance + meetings
-def calcSeasonPct = { seasonAttendance, seasonEnrolled, seasonMeetings ->
-    def totalAtt = 0
-    def totalPoss = 0
-    seasonAttendance.eachWithIndex { monthAttendance, idx ->
-        def m = seasonMeetings[idx]
-        def e = seasonEnrolled
-        totalAtt += monthAttendance.values().collect { it.sum() }.sum()
-        totalPoss += e.values().sum() * m
-    }
-    return (totalAtt / totalPoss) * 100
-}
-
-// EXPECTED RESULTS:
-// Per Club Monthly %: [puggles:12.5, cubbies:0.0, tnt:0.0, sparks:0.0]
-// Per Club Weekly %: [puggles:[50.0, 0.0, 0.0, 0.0], cubbies:[0.0, 0.0, 0.0, 0.0], tnt:[0.0, 0.0, 0.0, 0.0], sparks:[0.0, 0.0, 0.0, 0.0]]
-// Overall Monthly %: 3.571428571428571
-// Overall Season %: 3.571428571428571
-```
-
-### Current Problems:
-1. **Calendar shows 2%** - should be 14% (1 present ÷ 7 total students)
-2. **Cubbies sidebar shows 1%** - should be 12.5% monthly, 50% weekly/daily
-3. **Dynamic sidebar not working** - percentages don't change with view
-4. **Student filtering broken** - clicking student doesn't filter calendar
-
-### Implementation Plan:
-1. Fix calendar percentage calculation (per view period)
-2. Fix sidebar calculation (per view period) 
-3. Wire up dynamic sidebar updates
-4. Fix student calendar filtering
-5. Test all view types (Month/Week/Day)
 
 ## Development Progress Status
 
@@ -444,22 +351,30 @@ def calcSeasonPct = { seasonAttendance, seasonEnrolled, seasonMeetings ->
 - ✅ **Spring Security Integration** - Login system with role-based access
 - ✅ **User Management** - User creation, role assignment via UniversalDataService
 
-### 🚧 IN PROGRESS / PARTIALLY COMPLETE
+### ✅ RECENTLY COMPLETED (Previously In Progress)
 
-#### Verse Completion System
+#### Verse Completion System - ✅ **COMPLETED**
 - ✅ **View Structure** - verseCompletion.gsp and _verseCompletion.gsp templates exist
 - ✅ **Chapter Sections Loading** - Refactored to use universal pattern instead of custom endpoint
-- ❓ **Completion Recording** - Need to verify submission and buck calculation works
-- ❓ **Parent Verse Integration** - Parent completion tracking
+- ✅ **Completion Recording** - Full HTMX forms with PUT/POST to `/api/universal/SectionVerseCompletion/`
+- ✅ **Parent Verse Integration** - Parent completion tracking fully implemented
+- ✅ **Buck Calculation** - Automatic buck calculation integrated in domain model
 
-#### Attendance System  
+#### Attendance System - ✅ **COMPLETED**
 - ✅ **Family Check-In Display** - Shows students with current attendance status
-- ❓ **Attendance Recording** - Need to implement actual attendance submission
-- ❓ **Buck Calculation** - Auto-calculation of attendance bucks (present + uniform + bible/handbook)
+- ✅ **Attendance Recording** - Full HTMX forms with PUT/POST to `/api/universal/Attendance/`
+- ✅ **Buck Calculation** - Auto-calculation of attendance bucks with `beforeInsert/beforeUpdate` hooks
+- ✅ **Touch-Optimized UI** - Present/absent/uniform/bible/handbook toggles working
 
-### ❌ NOT YET IMPLEMENTED
+## 🎯 CURRENT STATUS SUMMARY (Updated Sept 2025)
 
-#### High Priority (Core Workflows)
+**Core Application: ✅ NEARLY COMPLETE**
+- Students, Attendance, Clubs, Verse Completion all **fully functional**
+- Only major gap: **Awana Store System** (currently placeholder)
+
+### ❌ REMAINING TO IMPLEMENT
+
+#### High Priority (Core Workflows) - ✅ **ALL COMPLETED**
 1. **✅ Clubs Management System** - COMPLETED
    - ✅ Added "Clubs" to bottom navigation
    - ✅ Created `/clubs` page with dynamic loading
@@ -467,28 +382,30 @@ def calcSeasonPct = { seasonAttendance, seasonEnrolled, seasonMeetings ->
    - ✅ Individual club management (students, books assignment)
    - ✅ Club deletion functionality
 
-2. **Attendance Submission & Buck Calculation**
-   - Toggle attendance checkboxes (present, uniform, bible, handbook)
-   - Auto-calculate and save attendance bucks
-   - Real-time total buck updates
+2. **✅ Attendance Submission & Buck Calculation** - COMPLETED
+   - ✅ Toggle attendance checkboxes (present, uniform, bible, handbook)
+   - ✅ Auto-calculate and save attendance bucks
+   - ✅ Real-time total buck updates
 
-2. **Verse Completion Submission**
-   - Record student verse completion
-   - Record parent verse completion  
-   - Silver/Gold section completion
-   - Auto-calculate and award completion bucks
+3. **✅ Verse Completion Submission** - COMPLETED
+   - ✅ Record student verse completion
+   - ✅ Record parent verse completion
+   - ✅ Silver/Gold section completion
+   - ✅ Auto-calculate and award completion bucks
 
-3. **Buck Calculation System**
-   - Helper methods in domain classes (Student.calculateTotalBucks(), etc.)
-   - Real-time buck totals across the application
-   - Buck history and tracking
+4. **✅ Buck Calculation System** - COMPLETED
+   - ✅ Helper methods in domain classes (Student.calculateTotalBucks(), etc.)
+   - ✅ Real-time buck totals across the application
+   - ✅ Buck history and tracking via domain model hooks
+
+#### Remaining Core Features
+1. **❌ Awana Store System** - PLACEHOLDER ONLY (Main remaining gap)
+   - ❌ Store item management (currently shows "coming soon")
+   - ❌ Student buck balance display
+   - ❌ Purchase transactions
+   - ❌ Buck spending and balance updates
 
 #### Medium Priority (Enhanced Features)
-4. **Awana Store System**
-   - Store item management
-   - Student buck balance display
-   - Purchase transactions
-   - Buck spending and balance updates
 
 5. **Advanced Reporting**
    - Attendance reports by club/student
