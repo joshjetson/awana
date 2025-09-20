@@ -59,14 +59,16 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                         <label class="block text-sm font-medium text-gray-700 mb-2">Book Type</label>
                         <div class="space-y-3">
                             <label class="flex items-center">
-                                <input type="radio" name="isPrimary" value="true" ${book?.isPrimary ? 'checked' : ''} class="text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <input type="radio" name="isPrimary" value="true" ${book?.isPrimary ? 'checked' : ''}
+                                        class="text-purple-600 focus:ring-purple-500 border-gray-300 rounded-2xl" style="border-radius : 100px 100px; width : 40px">
                                 <span class="ml-3">
                                     <span class="font-medium text-gray-900">Primary Book</span>
                                     <span class="block text-sm text-gray-600">Main handbook for this club</span>
                                 </span>
                             </label>
                             <label class="flex items-center">
-                                <input type="radio" name="isPrimary" value="false" ${book?.isPrimary == false || !book ? 'checked' : ''} class="text-purple-600 focus:ring-purple-500 border-gray-300">
+                                <input type="radio" name="isPrimary" value="false" ${book?.isPrimary == false || !book ? 'checked' : ''}
+                                       class="text-purple-600 focus:ring-purple-500 border-gray-300 rounded-2xl" style="border-radius : 100px 100px; width : 40px"">
                                 <span class="ml-3">
                                     <span class="font-medium text-gray-900">Secondary Book</span>
                                     <span class="block text-sm text-gray-600">Additional or advanced handbook</span>
