@@ -1,7 +1,7 @@
 <!-- Back Button -->
 <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
     <button hx-get="/renderView?viewType=attendanceClubOverview&meetingDate=${meetingDate}"
-            hx-target="#attendance-content-area"
+            hx-target="${targetElement ?: '#attendance-content-area'}"
             hx-swap="innerHTML"
             class="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +79,7 @@
         </div>
 
         <form <g:if test="${attendance?.id}">hx-put="/api/universal/Attendance/${attendance.id}?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:if><g:else>hx-post="/api/universal/Attendance?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:else>
-              hx-target="#attendance-content-area"
+              hx-target="${targetElement ?: '#attendance-content-area'}"
               hx-swap="innerHTML"
               hx-indicator="#save-indicator">
               
@@ -193,7 +193,7 @@
         <g:if test="${attendance?.id}">
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <button hx-delete="/api/universal/Attendance/${attendance.id}?viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"
-                        hx-target="#attendance-content-area"
+                        hx-target="${targetElement ?: '#attendance-content-area'}"
                         hx-swap="innerHTML"
                         hx-confirm="Delete this attendance record?"
                         class="text-red-600 hover:text-red-800 text-sm font-medium">

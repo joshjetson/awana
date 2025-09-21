@@ -86,19 +86,23 @@ class UniversalController {
             def students = household.getAllStudents()
             def today = new Date()
             def attendanceMap = [:]
-            
+
             students.each { student ->
                 def todaysAttendance = Attendance.findByStudentAndAttendanceDate(student, today)
                 attendanceMap[student.id] = todaysAttendance
             }
 
+            // Get the current calendar for the reusable checkinStudent template
+            def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
+
             return [
                 template: 'checkin/familyCheckIn',
                 model: [
                     household: household,
-                    students: students, 
+                    students: students,
                     attendanceMap: attendanceMap,
-                    today: today
+                    today: today,
+                    calendar: calendar
                 ]
             ]
         },
@@ -996,7 +1000,8 @@ class UniversalController {
                     student: student,
                     meetingDate: meetingDate,
                     attendance: attendance,
-                    calendar: calendar
+                    calendar: calendar,
+                    targetElement: params.targetElement
                 ]
             ]
         },
