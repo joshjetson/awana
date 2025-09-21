@@ -8,6 +8,8 @@ grails.plugin.springsecurity.auth.loginFormUrl = '/login/auth'
 grails.plugin.springsecurity.failureHandler.defaultFailureUrl = '/login/auth?login_error=1'
 grails.plugin.springsecurity.logout.afterLogoutUrl = '/'
 grails.plugin.springsecurity.logout.postOnly = false
+grails.plugin.databasemigration.updateOnStart = true
+grails.plugin.databasemigration.updateOnStartFileNames = ['changelog.groovy']
 
 grails.plugin.springsecurity.controllerAnnotations.staticRules = [
         [pattern: '/error',          access: ['permitAll']],

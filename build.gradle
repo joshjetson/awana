@@ -46,6 +46,13 @@ tasks.named("jar") {
     archiveClassifier = ''
     enabled = false
 }
+sourceSets {
+    main {
+        resources {
+            srcDir 'grails-app/migrations'
+        }
+    }
+}
 
 dependencies {
     profile "org.grails.profiles:web"
