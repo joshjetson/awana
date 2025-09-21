@@ -19,7 +19,7 @@ Loaded via: /renderView?viewType=checkin
                class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl
                       focus:border-blue-500 focus:ring-4 focus:ring-blue-200 focus:outline-none
                       placeholder-gray-400"
-               hx-get="/renderView?viewType=searchHouseholds"
+               hx-get="/renderView?viewType=search"
                hx-trigger="keyup changed delay:300ms, load"
                hx-target="#household-search-results"
                hx-swap="innerHTML">

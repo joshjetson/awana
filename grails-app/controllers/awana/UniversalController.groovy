@@ -822,14 +822,14 @@ class UniversalController {
                 model: [student: student, household: student.household, clubs: clubs]
             ]
         },
-        'searchHouseholds': { params ->
+        'search': { params ->
             def searchTerm = params.familySearch?.trim()
 
             if (!searchTerm) {
                 // No search term - show all households
                 def households = universalDataService.list(Household)
                 return [
-                    template: 'checkin/householdSearchResults',
+                    template: 'checkin/search',
                     model: [households: households, searchTerm: '']
                 ]
             }
@@ -857,7 +857,7 @@ class UniversalController {
             }
 
             return [
-                template: 'checkin/householdSearchResults',
+                template: 'checkin/search',
                 model: [households: matchingHouseholds, searchTerm: searchTerm]
             ]
         },

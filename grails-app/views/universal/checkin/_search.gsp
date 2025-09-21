@@ -1,6 +1,7 @@
 <%--
-Household Search Results Template
-Loaded via: /renderView?viewType=searchHouseholds
+Generic Search Results Template
+Displays household search results for family check-in
+Loaded via: /renderView?viewType=search
 --%>
 
 <g:if test="${households}">
