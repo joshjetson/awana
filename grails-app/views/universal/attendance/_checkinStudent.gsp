@@ -240,50 +240,68 @@ function updateButtonAppearance(input) {
     }
 }
 
-// Handle clicks on the entire button container
-document.addEventListener('click', function(e) {
-    // Check if we clicked on a button container with data-input-id
-    const button = e.target.closest('.attendance-toggle[data-input-id]');
-    if (button) {
-        const inputId = button.getAttribute('data-input-id');
-        const input = document.getElementById(inputId);
-        
-        if (input) {
-            if (input.type === 'radio') {
-                // For radio buttons, just check this one
-                input.checked = true;
-                
-                // Update all present/absent buttons
-                document.querySelectorAll('input[name="present"]').forEach(function(radio) {
-                    updateButtonAppearance(radio);
-                });
-                
-                // Show/hide extras based on selection
-                const extras = document.getElementById('extras');
-                if (input.value === 'true') {
-                    extras.style.display = 'grid';
-                } else {
-                    extras.style.display = 'none';
-                    // Clear and update appearance of checkboxes when hiding
-                    extras.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
-                        cb.checked = false;
-                        updateButtonAppearance(cb);
-                    });
+// Only add event listener once to prevent conflicts
+if (!window.attendanceClickHandlerAdded) {
+    window.attendanceClickHandlerAdded = true;
+
+    // Handle clicks on the entire button container
+    document.addEventListener('click', function(e) {
+        // Check if we clicked on a button container with data-input-id
+        const button = e.target.closest('.attendance-toggle[data-input-id]');
+        if (button) {
+            const inputId = button.getAttribute('data-input-id');
+            const input = document.getElementById(inputId);
+
+            if (input) {
+                if (input.type === 'radio') {
+                    // For radio buttons, just check this one
+                    input.checked = true;
+
+                    // Update all present/absent buttons in the same form
+                    const form = input.closest('form');
+                    if (form) {
+                        form.querySelectorAll('input[name="present"]').forEach(function(radio) {
+                            updateButtonAppearance(radio);
+                        });
+
+                        // Show/hide extras based on selection
+                        const extras = form.querySelector('#extras');
+                        if (extras) {
+                            if (input.value === 'true') {
+                                extras.style.display = 'grid';
+                            } else {
+                                extras.style.display = 'none';
+                                // Clear and update appearance of checkboxes when hiding
+                                extras.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                                    cb.checked = false;
+                                    updateButtonAppearance(cb);
+                                });
+                            }
+                        }
+                    }
+
+                } else if (input.type === 'checkbox') {
+                    // For checkboxes, toggle the state
+                    input.checked = !input.checked;
+                    updateButtonAppearance(input);
                 }
-                
-            } else if (input.type === 'checkbox') {
-                // For checkboxes, toggle the state
-                input.checked = !input.checked;
-                updateButtonAppearance(input);
             }
         }
-    }
-});
-
-// Initialize button appearances on page load
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.attendance-toggle input').forEach(function(input) {
-        updateButtonAppearance(input);
     });
-});
+}
+
+// Initialize button appearances for this specific form
+(function() {
+    // Wait a moment for DOM to be ready, then initialize
+    setTimeout(function() {
+        // Only initialize buttons in the current script's context
+        const currentScript = document.currentScript;
+        const container = currentScript ? currentScript.closest('.bg-white') : document;
+        if (container) {
+            container.querySelectorAll('.attendance-toggle input').forEach(function(input) {
+                updateButtonAppearance(input);
+            });
+        }
+    }, 10);
+})();
 </script>

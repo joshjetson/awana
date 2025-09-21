@@ -29,77 +29,76 @@
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 pb-20">
     
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4 py-8">
+    <div class="bg-gradient-to-r from-green-600 to-blue-600 text-white px-4">
         <div class="max-w-4xl mx-auto text-center">
             <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
                 </svg>
             </div>
-            <h1 class="text-3xl font-bold mb-2">Welcome to Club Night!</h1>
-            <p class="text-green-100 text-lg">Scan your family QR code to check in</p>
+            <h1 class="text-3xl font-bold mb-2">Check In</h1>
         </div>
     </div>
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
         
-        <!-- Primary QR Scan Action -->
-        <div class="bg-white rounded-2xl shadow-xl p-8 border-l-4 border-green-500 text-center">
-            <div class="mb-6">
-                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Scan Family QR Code</h2>
-                <p class="text-gray-600 text-lg">Point your camera at the family QR code</p>
-            </div>
-            
-            <!-- QR Code Input (for demo - in real app this would be camera) -->
-            <div class="space-y-4">
-                <input type="text"
-                       id="qr-input"
-                       placeholder="Enter QR Code (e.g., HH-ABC123)"
-                       class="w-full px-6 py-4 text-xl text-center border-2 border-gray-300 rounded-xl
-                              focus:border-green-500 focus:ring-4 focus:ring-green-200 focus:outline-none
-                              placeholder-gray-400 font-mono tracking-wider">
+        <!-- Primary QR Scan Action V2-->
+%{--        <div class="bg-white rounded-2xl shadow-xl p-8 border-l-4 border-green-500 text-center">--}%
+%{--            <div class="mb-6">--}%
+%{--                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">--}%
+%{--                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">--}%
+%{--                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>--}%
+%{--                    </svg>--}%
+%{--                </div>--}%
+%{--                <h2 class="text-2xl font-bold text-gray-900 mb-2">Scan Family QR Code</h2>--}%
+%{--                <p class="text-gray-600 text-lg">Point your camera at the family QR code</p>--}%
+%{--            </div>--}%
+%{--            --}%
+%{--            <!-- QR Code Input (for demo - in real app this would be camera) -->--}%
+%{--            <div class="space-y-4">--}%
+%{--                <input type="text"--}%
+%{--                       id="qr-input"--}%
+%{--                       placeholder="Enter QR Code (e.g., HH-ABC123)"--}%
+%{--                       class="w-full px-6 py-4 text-xl text-center border-2 border-gray-300 rounded-xl--}%
+%{--                              focus:border-green-500 focus:ring-4 focus:ring-green-200 focus:outline-none--}%
+%{--                              placeholder-gray-400 font-mono tracking-wider">--}%
 
-                <!-- Two action buttons: Scan QR and Find Family -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button type="button"
-                            onclick="scanQRCode()"
-                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-green-600 hover:bg-green-700 active:bg-green-800 text-white focus:ring-green-200 w-full">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
-                        </svg>
-                        <span class="ml-2">Scan QR</span>
-                    </button>
+%{--                <!-- Two action buttons: Scan QR and Find Family -->--}%
+%{--                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">--}%
+%{--                    <button type="button"--}%
+%{--                            onclick="scanQRCode()"--}%
+%{--                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-green-600 hover:bg-green-700 active:bg-green-800 text-white focus:ring-green-200 w-full">--}%
+%{--                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">--}%
+%{--                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>--}%
+%{--                        </svg>--}%
+%{--                        <span class="ml-2">Scan QR</span>--}%
+%{--                    </button>--}%
 
-                    <button type="button"
-                            hx-get="/renderView?viewType=checkin"
-                            hx-target="#checkin-page-content"
-                            hx-swap="innerHTML"
-                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white focus:ring-blue-200 w-full">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <span class="ml-2">Find Family</span>
-                    </button>
-                </div>
-            </div>
+%{--                    <button type="button"--}%
+%{--                            hx-get="/renderView?viewType=checkin"--}%
+%{--                            hx-target="#checkin-page-content"--}%
+%{--                            hx-swap="innerHTML"--}%
+%{--                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white focus:ring-blue-200 w-full">--}%
+%{--                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">--}%
+%{--                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>--}%
+%{--                        </svg>--}%
+%{--                        <span class="ml-2">Find Family</span>--}%
+%{--                    </button>--}%
+%{--                </div>--}%
+%{--            </div>--}%
+%{--        </div>--}%
+
+        <!-- Manual Search Fallback (loaded via HTMX) -->
+        <div id="checkin-page-content"
+             hx-get="/renderView?viewType=checkin"
+             hx-trigger="load"
+             hx-swap="innerHTML">
+            <!-- Manual search content loads here via HTMX -->
         </div>
 
         <!-- Family Check-In Results Area (loaded via HTMX) -->
         <div id="family-checkin-area" class="space-y-4">
             <!-- HTMX will load family check-in content here -->
-        </div>
-
-        <!-- Manual Search Fallback (loaded via HTMX) -->
-        <div id="checkin-page-content" 
-             hx-get="/renderView?viewType=checkin" 
-             hx-trigger="load"
-             hx-swap="innerHTML">
-            <!-- Manual search content loads here via HTMX -->
         </div>
 
     </div>

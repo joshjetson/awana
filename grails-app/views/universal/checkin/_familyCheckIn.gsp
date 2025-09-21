@@ -59,17 +59,18 @@
         </div>
 
         <!-- Student Check-in Form Area -->
-        <div id="student-checkin-form" class="mt-6">
-            <!-- First student's form will load here by default -->
+        <div id="student-checkin-form" class="mt-6"
+             <g:if test="${students}">
+             hx-get="/renderView?viewType=checkinStudent&studentId=${students[0].id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${today}'/>&targetElement=%23student-checkin-form"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             </g:if>>
+            <!-- First student's form will load via HTMX for consistency -->
             <g:if test="${students}">
-                <g:set var="firstStudent" value="${students[0]}"/>
-                <g:set var="firstAttendance" value="${attendanceMap[firstStudent.id]}"/>
-                <g:render template="/universal/attendance/checkinStudent"
-                          model="[student: firstStudent,
-                                  meetingDate: today,
-                                  attendance: firstAttendance,
-                                  calendar: calendar,
-                                  targetElement: '#student-checkin-form']"/>
+                <div class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <p class="mt-2 text-sm text-gray-500">Loading student form...</p>
+                </div>
             </g:if>
         </div>
     </div>
