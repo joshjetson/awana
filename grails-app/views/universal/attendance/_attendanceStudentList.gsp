@@ -69,7 +69,7 @@
                             </div>
                             <div class="flex space-x-2 mt-2">
                                 <button type="button"
-                                        hx-get="/renderView?viewType=studentAttendanceDetail&studentId=${student.id}&meetingDate=${meetingDate}"
+                                        hx-get="/renderView?viewType=checkinStudent&studentId=${student.id}&meetingDate=${meetingDate}"
                                         hx-target="#attendance-content-area"
                                         hx-swap="innerHTML" 
                                         class="inline-flex items-center justify-center px-3 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl min-h-[44px] transition-colors">

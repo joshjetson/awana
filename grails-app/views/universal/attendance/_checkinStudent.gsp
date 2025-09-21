@@ -78,7 +78,7 @@
             </div>
         </div>
 
-        <form <g:if test="${attendance?.id}">hx-put="/api/universal/Attendance/${attendance.id}?domainName=Attendance&viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:if><g:else>hx-post="/api/universal/Attendance?domainName=Attendance&viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:else>
+        <form <g:if test="${attendance?.id}">hx-put="/api/universal/Attendance/${attendance.id}?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:if><g:else>hx-post="/api/universal/Attendance?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:else>
               hx-target="#attendance-content-area"
               hx-swap="innerHTML"
               hx-indicator="#save-indicator">
@@ -192,7 +192,7 @@
         <!-- Delete Button (if attendance exists) -->
         <g:if test="${attendance?.id}">
             <div class="mt-4 pt-4 border-t border-gray-200">
-                <button hx-delete="/api/universal/Attendance/${attendance.id}?viewType=studentAttendanceDetail&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"
+                <button hx-delete="/api/universal/Attendance/${attendance.id}?viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"
                         hx-target="#attendance-content-area"
                         hx-swap="innerHTML"
                         hx-confirm="Delete this attendance record?"

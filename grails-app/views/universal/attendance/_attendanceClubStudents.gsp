@@ -88,7 +88,7 @@
                             </div>
                             
                             <button type="button"
-                                    hx-get="/renderView?viewType=studentAttendanceDetail&studentId=${student.id}&meetingDate=${meetingDate}&clubId=${club.id}"
+                                    hx-get="/renderView?viewType=checkinStudent&studentId=${student.id}&meetingDate=${meetingDate}&clubId=${club.id}"
                                     hx-target="#attendance-content-area"
                                     hx-swap="innerHTML" 
                                     class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium ${attendance?.present ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg min-h-[40px] transition-colors">

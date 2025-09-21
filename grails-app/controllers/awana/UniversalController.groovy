@@ -962,17 +962,17 @@ class UniversalController {
                 ]
             ]
         },
-        'studentAttendanceDetail': { params ->
+        'checkinStudent': { params ->
             Long studentId = params.long('refreshStudentId') ?: params.long('studentId')
             
             // Debug the meetingDate parameter
-            log.info("studentAttendanceDetail - meetingDate param: '${params.meetingDate}'")
+            log.info("checkinStudent - meetingDate param: '${params.meetingDate}'")
             def meetingDate = parseDate(params.meetingDate)
             if (!meetingDate) {
                 log.warn("Failed to parse meetingDate '${params.meetingDate}', using current date")
                 meetingDate = new Date()
             }
-            log.info("studentAttendanceDetail - parsed meetingDate: ${meetingDate}")
+            log.info("checkinStudent - parsed meetingDate: ${meetingDate}")
             
             def student = universalDataService.getById(Student, studentId)
             
@@ -991,7 +991,7 @@ class UniversalController {
             def calendar = Calendar.list([sort: 'id', order: 'desc'])?.find()
             
             return [
-                template: 'attendance/studentAttendanceDetail',
+                template: 'attendance/checkinStudent',
                 model: [
                     student: student,
                     meetingDate: meetingDate,
