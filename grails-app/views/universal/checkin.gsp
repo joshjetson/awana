@@ -139,11 +139,14 @@ function loadFamily(qrCode) {
 
 
 // Allow Enter key to trigger scan
-document.getElementById('qr-input').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        scanQRCode();
-    }
-});
+const qrInput = document.getElementById('qr-input');
+if (qrInput) {
+    qrInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            scanQRCode();
+        }
+    });
+}
 </script>
 
 </body>
