@@ -4,6 +4,7 @@ import grails.converters.JSON
 import grails.plugin.springsecurity.annotation.Secured
 import grails.util.GrailsNameUtils
 import groovy.time.TimeCategory
+import org.springframework.http.MediaType
 import java.text.SimpleDateFormat
 import java.time.*
 import java.time.temporal.ChronoUnit
@@ -12,6 +13,9 @@ import java.time.temporal.ChronoUnit
 class UniversalController {
 
     UniversalDataService universalDataService
+
+    // SSE Client Management (Phase 3)
+    private static final List<PrintWriter> sseClients = Collections.synchronizedList([])
     
     def parseDate(String value) {
         if (!value) return null
@@ -1159,6 +1163,30 @@ class UniversalController {
                 template: 'books/createBook',
                 model: [book: book, club: club, editMode: true]
             ]
+        },
+        'todaysRoster': { params ->
+            // Get today's attendance records where present = true
+            SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+            String todayStr = sdf.format(new Date())
+
+            def attendances = universalDataService.list(Attendance).findAll { attendance ->
+                if (!attendance.attendanceDate || !attendance.present) return false
+                String attendanceDateStr = sdf.format(attendance.attendanceDate)
+                return attendanceDateStr == todayStr
+            }
+
+            List<Map> roster = attendances.collect { attendance ->
+                [
+                    studentName: "${attendance.student.firstName} ${attendance.student.lastName}",
+                    studentId: attendance.student.id,
+                    club: attendance.student.club?.name
+                ]
+            }
+
+            return [
+                template: 'shared/todaysRoster',
+                model: [roster: roster]
+            ]
         }
     ]
 
@@ -1389,8 +1417,24 @@ class UniversalController {
                 preprocessCalendarTimeFields(params) : params
             
             def instance = universalDataService.save(domainClass, processedParams)
-            
-            
+
+            // SSE Broadcasting for today's check-ins (Phase 3)
+            if (instance && domainClass == Attendance) {
+                Attendance attendance = (Attendance) instance
+
+                // Only trigger SSE for TODAY's check-ins
+                SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                String todayStr = sdf.format(new Date())
+                String attendanceDateStr = sdf.format(attendance.attendanceDate)
+
+                // Only broadcast if:
+                // 1. It's for today's date
+                // 2. Student is marked present
+                if (todayStr == attendanceDateStr && attendance.present) {
+                    broadcastStudentCheckin(attendance.student)
+                }
+            }
+
             if (instance) {
                 if (isHtmxRequest()) {
                     if (viewType && viewRenderMap.containsKey(viewType)) {
@@ -1452,6 +1496,23 @@ class UniversalController {
                 preprocessCalendarTimeFields(params) : params
             
             def instance = universalDataService.update(domainClass, id, processedParams)
+
+            // SSE Broadcasting for today's check-ins (Phase 3)
+            if (instance && domainClass == Attendance) {
+                Attendance attendance = (Attendance) instance
+
+                // Only trigger SSE for TODAY's check-ins
+                SimpleDateFormat sdf = new SimpleDateFormat('yyyy-MM-dd')
+                String todayStr = sdf.format(new Date())
+                String attendanceDateStr = sdf.format(attendance.attendanceDate)
+
+                // Only broadcast if:
+                // 1. It's for today's date
+                // 2. Student is marked present
+                if (todayStr == attendanceDateStr && attendance.present) {
+                    broadcastStudentCheckin(attendance.student)
+                }
+            }
 
             if (instance) {
                 if (isHtmxRequest()) {
@@ -1647,7 +1708,90 @@ class UniversalController {
      * Check if this is a JSON API request (for REST endpoints)
      */
     private boolean isJsonRequest() {
-        return params.format == 'json' || 
+        return params.format == 'json' ||
                request.getHeader('Accept')?.contains('application/json')
+    }
+
+    /**
+     * SSE (Server-Sent Events) endpoint for real-time updates
+     * Phase 3: Client management and broadcasting
+     */
+    def sse() {
+        response.contentType = MediaType.TEXT_EVENT_STREAM_VALUE
+        response.characterEncoding = "UTF-8"
+        response.setHeader("Cache-Control", "no-cache")
+        response.setHeader("Connection", "keep-alive")
+        response.setHeader("Access-Control-Allow-Origin", "*")
+
+        PrintWriter writer = response.writer
+        sseClients.add(writer)
+
+        try {
+            // Send initial connection confirmation
+            SimpleDateFormat timeFormat = new SimpleDateFormat('HH:mm:ss')
+            String timestamp = timeFormat.format(new Date())
+            writer.write("event: heartbeat\ndata: Connected: ${timestamp}\n\n")
+            writer.flush()
+
+            // Keep connection alive with periodic heartbeats
+            int heartbeatCount = 0
+            while (!Thread.currentThread().isInterrupted() && heartbeatCount < 120) { // 2 hours max
+                try {
+                    Thread.sleep(30000) // 30 second heartbeats
+                    heartbeatCount++
+                    timestamp = timeFormat.format(new Date())
+                    writer.write("event: heartbeat\ndata: Heartbeat: ${timestamp}\n\n")
+                    writer.flush()
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt()
+                    break
+                } catch (Exception e) {
+                    // Client likely disconnected
+                    break
+                }
+            }
+
+        } catch (Exception e) {
+            log.debug "SSE client disconnected: ${e.message}"
+        } finally {
+            sseClients.remove(writer)
+            try {
+                writer.close()
+            } catch (Exception ignored) {}
+        }
+    }
+
+    /**
+     * Helper method to send SSE events
+     */
+    private void sseEvent(Map args) {
+        String eventType = args.eventType ?: 'message'
+        String data = args.data ?: ''
+
+        response.writer.with {
+            write("event: ${eventType}\ndata: ${data}\n\n")
+            flush()
+        }
+    }
+
+    /**
+     * Broadcast student check-in to all SSE clients (Phase 3)
+     */
+    static void broadcastStudentCheckin(Student student) {
+        String studentName = "${student.firstName} ${student.lastName}"
+        println "Broadcasting student check-in: ${studentName}"
+
+        synchronized(sseClients) {
+            sseClients.removeAll { client ->
+                try {
+                    client.write("event: student-checkin\ndata: ${studentName}\n\n")
+                    client.flush()
+                    return false // Keep client
+                } catch (Exception e) {
+                    println "Removing dead SSE client: ${e.message}"
+                    return true // Remove dead client
+                }
+            }
+        }
     }
 }

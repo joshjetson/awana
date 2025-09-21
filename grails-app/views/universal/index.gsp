@@ -4,6 +4,33 @@
     <meta name="layout" content="main"/>
     <title>Awana Club Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        @keyframes gradient-xy {
+            0%, 100% {
+                background-size: 400% 400%;
+                background-position: left center;
+            }
+            50% {
+                background-size: 200% 200%;
+                background-position: right center;
+            }
+        }
+        .animate-gradient-xy {
+            animation: gradient-xy 6s ease infinite;
+        }
+        /* Pulse animation for student names */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+            }
+        }
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
 
@@ -27,7 +54,7 @@
 
 <div class="min-h-screen bg-gray-50 pb-20">
     <!-- Quick Stats Header -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-6">
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4">
         <div class="max-w-4xl mx-auto">
             <h1 class="text-2xl font-bold mb-2">Club Dashboard</h1>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -53,24 +80,70 @@
 
     <div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- Today's Daily Activity -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Today's Activity</h2>
-                <div class="flex items-center space-x-2">
-                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span class="text-sm text-gray-600">Live Updates</span>
+
+        <!-- Live Student Check-In Updates (Phase 2) -->
+        <div class="bg-gradient-to-br from-purple-600 via-blue-600 to-teal-600 text-white p-8 rounded-2xl mb-6 shadow-xl animate-gradient-xy">
+            <div class="flex items-center justify-center mb-4">
+                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
                 </div>
+                <h2 class="text-3xl font-bold">🎉 Welcome!</h2>
+            </div>
+            <div id="live-student-name"
+                 class="text-8xl font-bold text-center min-h-[8rem] flex items-center justify-center bg-white/10 rounded-xl backdrop-blur-sm border border-white/20"
+                 hx-ext="sse"
+                 sse-connect="/universal/sse"
+                 sse-swap="student-checkin">
+                <span class="text-white/80 text-4xl">👋 Waiting for awesome kids...</span>
             </div>
 
-            <!-- Real-time Activity List -->
-            <div id="activity-feed" class="space-y-3">
-                <div class="text-center py-8 text-gray-500">
-                    <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <script>
+                // Handle expected SSE errors gracefully (during navigation/refresh)
+                document.getElementById('live-student-name').addEventListener('htmx:sseError', function(evt) {
+                    console.log('SSE connection issue (normal during navigation):', evt.detail);
+                    // Suppress the error - this is expected behavior during page transitions
+                    evt.preventDefault();
+                });
+
+                // Refresh Today's Roster when student checks in
+                document.getElementById('live-student-name').addEventListener('htmx:sseMessage', function(evt) {
+                    if (evt.detail.type === 'student-checkin') {
+                        // Add celebration effect when student checks in
+                        const nameElement = document.getElementById('live-student-name');
+                        nameElement.classList.add('pulse-glow');
+
+                        // Remove the animation after a few seconds
+                        setTimeout(() => {
+                            nameElement.classList.remove('pulse-glow');
+                        }, 4000);
+
+                        // Refresh the roster section
+                        htmx.trigger('#todays-roster', 'refresh');
+                    }
+                });
+            </script>
+        </div>
+
+        <!-- Today's Roster (Phase 2) -->
+        <div class="bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 p-6 rounded-2xl mb-6 shadow-lg">
+            <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <p class="text-lg font-medium">No activity yet today</p>
-                    <p class="text-sm">Activity will appear here as students check in and complete tasks</p>
+                </div>
+                <h3 class="text-2xl font-bold text-white">⭐ Today's Champions</h3>
+            </div>
+            <div id="todays-roster"
+                 hx-get="/renderView?viewType=todaysRoster"
+                 hx-trigger="load, refresh"
+                 hx-swap="innerHTML"
+                 class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div class="text-center py-8 col-span-full text-white/80">
+                    <div class="text-4xl mb-2">⏰</div>
+                    <p class="text-lg font-medium">Loading our amazing kids...</p>
                 </div>
             </div>
         </div>
@@ -113,38 +186,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <a href="/checkin" class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
-                    </svg>
-                </div>
-                <div class="font-medium text-gray-900">Check In</div>
-                <div class="text-sm text-gray-600">Family QR Scan</div>
-            </a>
-
-            <a href="/students" class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                </div>
-                <div class="font-medium text-gray-900">Students</div>
-                <div class="text-sm text-gray-600">Manage Progress</div>
-            </a>
-
-            <a href="/clubs" class="bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center">
-                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                </div>
-                <div class="font-medium text-gray-900">Clubs</div>
-                <div class="text-sm text-gray-600">Club Management</div>
-            </a>
-        </div>
 
     </div>
     
@@ -206,7 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return attendanceDate === today && attendance.present === true;
             });
 
-            console.log('Today attendance count:', todayAttendance.length);
 
             // Update the dashboard if the element exists
             const todayAttendanceElement = document.getElementById('today-attendance');
