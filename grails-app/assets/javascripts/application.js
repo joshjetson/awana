@@ -3,6 +3,7 @@
 // HTMX loaded locally from assets
 //
 //= require htmx.min
+//= require sse
 //= require fullcalendar.min
 //= require_self
 
