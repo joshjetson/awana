@@ -1,6 +1,6 @@
 FROM amazoncorretto:11-alpine-jdk AS builder
 
-ENV GRAILS_ENV production
+ENV GRAILS_ENV=production
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -14,7 +14,7 @@ WORKDIR /app
 
 # Copy Gradle wrapper and build files
 COPY gradle/ gradle/
-COPY gradlew build.gradle gradle.properties settings.gradle /app/
+COPY gradlew build.gradle gradle.properties /app/
 
 # Download Gradle dependencies
 RUN ./gradlew dependencies --no-daemon
