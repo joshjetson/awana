@@ -57,23 +57,35 @@
             
             <!-- QR Code Input (for demo - in real app this would be camera) -->
             <div class="space-y-4">
-                <input type="text" 
-                       id="qr-input" 
-                       placeholder="Enter QR Code (e.g., HH-ABC123)" 
-                       class="w-full px-6 py-4 text-xl text-center border-2 border-gray-300 rounded-xl 
+                <input type="text"
+                       id="qr-input"
+                       placeholder="Enter QR Code (e.g., HH-ABC123)"
+                       class="w-full px-6 py-4 text-xl text-center border-2 border-gray-300 rounded-xl
                               focus:border-green-500 focus:ring-4 focus:ring-green-200 focus:outline-none
                               placeholder-gray-400 font-mono tracking-wider">
-                              
-                <button onclick="scanQRCode()" 
-                        class="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 
-                               text-white font-bold py-4 px-8 rounded-xl text-xl
-                               transition-all duration-200 transform hover:scale-105 active:scale-95
-                               shadow-lg hover:shadow-xl">
-                    <svg class="w-6 h-6 inline mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    Find Family
-                </button>
+
+                <!-- Two action buttons: Scan QR and Find Family -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button type="button"
+                            onclick="scanQRCode()"
+                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-green-600 hover:bg-green-700 active:bg-green-800 text-white focus:ring-green-200 w-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"/>
+                        </svg>
+                        <span class="ml-2">Scan QR</span>
+                    </button>
+
+                    <button type="button"
+                            hx-get="/renderView?viewType=checkin"
+                            hx-target="#checkin-page-content"
+                            hx-swap="innerHTML"
+                            class="inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 px-8 py-4 text-lg min-h-[60px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white focus:ring-blue-200 w-full">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <span class="ml-2">Find Family</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -114,17 +126,18 @@ function scanQRCode() {
 function loadFamily(qrCode) {
     // Clear previous results
     document.getElementById('family-checkin-area').innerHTML = '';
-    
+
     // Use HTMX to load family check-in via universal renderView
     htmx.ajax('GET', '/renderView', {
-        values: { 
+        values: {
             viewType: 'checkInFamily',
-            qrCode: qrCode 
+            qrCode: qrCode
         },
         target: '#family-checkin-area',
         swap: 'innerHTML'
     });
 }
+
 
 // Allow Enter key to trigger scan
 document.getElementById('qr-input').addEventListener('keypress', function(e) {

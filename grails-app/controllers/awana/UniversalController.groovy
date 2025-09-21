@@ -822,6 +822,45 @@ class UniversalController {
                 model: [student: student, household: student.household, clubs: clubs]
             ]
         },
+        'searchHouseholds': { params ->
+            def searchTerm = params.familySearch?.trim()
+
+            if (!searchTerm) {
+                // No search term - show all households
+                def households = universalDataService.list(Household)
+                return [
+                    template: 'checkin/householdSearchResults',
+                    model: [households: households, searchTerm: '']
+                ]
+            }
+
+            // Search households by name and also find households containing students with matching names
+            def matchingHouseholds = []
+
+            // Direct household name search
+            def householdsByName = Household.findAll(
+                "FROM Household WHERE LOWER(name) LIKE :searchTerm",
+                [searchTerm: "%${searchTerm.toLowerCase()}%"]
+            )
+            matchingHouseholds.addAll(householdsByName)
+
+            // Find households with students matching the search term
+            def studentsMatching = Student.findAll(
+                "FROM Student WHERE LOWER(firstName) LIKE :searchTerm OR LOWER(lastName) LIKE :searchTerm",
+                [searchTerm: "%${searchTerm.toLowerCase()}%"]
+            )
+
+            studentsMatching.each { student ->
+                if (student.household && !matchingHouseholds.contains(student.household)) {
+                    matchingHouseholds.add(student.household)
+                }
+            }
+
+            return [
+                template: 'checkin/householdSearchResults',
+                model: [households: matchingHouseholds, searchTerm: searchTerm]
+            ]
+        },
         'attendanceManagement': { params ->
             def meetingDate = parseDate(params.meetingDate) ?: new Date()
             return [
