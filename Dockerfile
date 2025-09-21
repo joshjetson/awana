@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk-alpine AS builder
+FROM amazoncorretto:11-alpine-jdk AS builder
 
 ENV GRAILS_ENV production
 
@@ -28,7 +28,7 @@ RUN ./gradlew assemble -Dgrails.env=production --no-daemon \
     && rm -rf ~/.gradle/caches/*/tmp \
     && rm -rf build/tmp
 
-FROM openjdk:11-jre-alpine AS runtime
+FROM amazoncorretto:11-alpine AS runtime
 
 ARG COMMIT_HASH
 
