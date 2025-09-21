@@ -1503,7 +1503,7 @@ class UniversalController {
             if (deleted) {
                 if (isHtmxRequest()) {
                     // For HTMX deletes, typically remove the element from DOM or show success message
-                    render status: 200, template: 'deleteSuccess', model: [domainName: domainName, id: id]
+                    render status: 200, template: 'shared/deleteSuccess', model: [domainName: domainName, id: id]
                     return
                 } else if (isJsonRequest()) {
                     render status: 204, text: ''
