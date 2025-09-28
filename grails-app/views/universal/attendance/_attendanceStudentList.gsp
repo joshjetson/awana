@@ -1,7 +1,7 @@
 <!-- Back Button -->
 <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
     <button hx-get="/renderView?viewType=attendanceClubOverview&meetingDate=${meetingDate}"
-            hx-target="#attendance-content-area"
+            hx-target="#attendance-page-content"
             hx-swap="innerHTML"
             class="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@
                             <div class="flex space-x-2 mt-2">
                                 <button type="button"
                                         hx-get="/renderView?viewType=checkinStudent&studentId=${student.id}&meetingDate=${meetingDate}"
-                                        hx-target="#attendance-content-area"
+                                        hx-target="#attendance-page-content"
                                         hx-swap="innerHTML" 
                                         class="inline-flex items-center justify-center px-3 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl min-h-[44px] transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

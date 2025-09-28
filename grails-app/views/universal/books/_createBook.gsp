@@ -34,8 +34,8 @@ Loaded via: /renderView?viewType=createBook&clubId=123
             <h2 class="text-xl font-bold text-gray-900 mb-6">Book Information</h2>
             
             <form id="${editMode ? 'edit' : 'create'}-book-form" 
-                  <g:if test="${editMode}">hx-put="/api/universal/Book/${book?.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"</g:if>
-                  <g:else>hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id}"</g:else>
+                  <g:if test="${editMode}">hx-put="/api/universal/Book/${book?.id}?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id?.toString()?.split(':')[0]}"</g:if>
+                  <g:else>hx-post="/api/universal/Book?domainName=Book&viewType=clubBooks&refreshClubId=${club?.id?.toString()?.split(':')[0]}"</g:else>
                   hx-target="#clubs-page-content"
                   hx-swap="innerHTML">
                 
@@ -144,11 +144,20 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                                                            placeholder="Section content"
                                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm">
                                                     <g:if test="${section.id}"><input type="hidden" name="chapters[${chapterIndex}].chapterSections[${sectionIndex}].id" value="${section.id}"></g:if>
-                                                    <button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                        </svg>
-                                                    </button>
+                                                    <g:if test="${section.id}">
+                                                        <button type="button" onclick="deleteSection(this, ${section.id})" class="text-red-600 hover:text-red-800 p-1">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </g:if>
+                                                    <g:else>
+                                                        <button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 p-1">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                            </svg>
+                                                        </button>
+                                                    </g:else>
                                                 </div>
                                             </g:each>
                                         </div>
@@ -274,7 +283,6 @@ Loaded via: /renderView?viewType=createBook&clubId=123
         window.removeChapter = function(button) {
             const chapterDiv = button.closest('.border');
             chapterDiv.remove();
-            updateChapterNumbers();
             updateRemoveButtons();
         };
 
@@ -301,18 +309,32 @@ Loaded via: /renderView?viewType=createBook&clubId=123
             sectionsContainer.appendChild(sectionDiv);
         };
 
-        function updateChapterNumbers() {
-            const chapterForms = document.querySelectorAll('#chapters-container > .border');
-            chapterForms.forEach((form, index) => {
-                const header = form.querySelector('h4');
-                header.textContent = 'Chapter ' + (index + 1);
-                // Update chapter number hidden input
-                const chapterNumberInput = form.querySelector('input[name$=".chapterNumber"]');
-                if (chapterNumberInput) {
-                    chapterNumberInput.value = index + 1;
+        window.deleteSection = function(button, sectionId) {
+            console.log('deleteSection called with sectionId:', sectionId);
+
+            if (!sectionId) {
+                console.error('No sectionId provided');
+                return;
+            }
+
+            // Remove from DOM immediately
+            button.parentElement.remove();
+
+            // Make DELETE request to backend with proper headers
+            fetch('/api/universal/ChapterSection/' + sectionId, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': '*/*',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'HX-Request': 'true',
+                    'HX-Current-URL': window.location.href,
+                    'Origin': window.location.origin
                 }
+            }).catch(error => {
+                console.error('Error deleting section:', error);
+                // Could show a notification here if needed
             });
-        }
+        };
 
         function updateRemoveButtons() {
             const chapterForms = document.querySelectorAll('#chapters-container > .border');

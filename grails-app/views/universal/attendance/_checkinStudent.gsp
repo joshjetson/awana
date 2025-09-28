@@ -1,18 +1,6 @@
-<!-- Back Button -->
-<div class="bg-white rounded-xl shadow-lg p-4 mb-6">
-    <button hx-get="/renderView?viewType=attendanceClubOverview&meetingDate=${meetingDate}"
-            hx-target="${targetElement ?: '#attendance-content-area'}"
-            hx-swap="innerHTML"
-            class="flex items-center space-x-2 text-blue-600 hover:text-blue-800 font-medium">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m0 7h18"/>
-        </svg>
-        <span>Back to Clubs</span>
-    </button>
-</div>
 
 <!-- Student Attendance Detail -->
-<div class="bg-white rounded-xl shadow-lg p-6">
+<div id="student-attendance-detail" class="bg-white rounded-xl shadow-lg p-6">
     <!-- Student Header -->
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center space-x-4">
@@ -79,8 +67,8 @@
         </div>
 
         <form <g:if test="${attendance?.id}">hx-put="/api/universal/Attendance/${attendance.id}?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:if><g:else>hx-post="/api/universal/Attendance?domainName=Attendance&viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"</g:else>
-              hx-target="${targetElement ?: '#attendance-content-area'}"
-              hx-swap="innerHTML"
+              hx-target="#student-attendance-detail"
+              hx-swap="outerHTML"
               hx-indicator="#save-indicator">
               
             <input type="hidden" name="student.id" value="${student.id}">
@@ -193,8 +181,8 @@
         <g:if test="${attendance?.id}">
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <button hx-delete="/api/universal/Attendance/${attendance.id}?viewType=checkinStudent&refreshStudentId=${student.id}&meetingDate=<g:formatDate format='yyyy-MM-dd' date='${meetingDate}'/>&clubId=${student.club?.id}"
-                        hx-target="${targetElement ?: '#attendance-content-area'}"
-                        hx-swap="innerHTML"
+                        hx-target="#student-attendance-detail"
+                        hx-swap="outerHTML"
                         hx-confirm="Delete this attendance record?"
                         class="text-red-600 hover:text-red-800 text-sm font-medium">
                     Delete Attendance Record

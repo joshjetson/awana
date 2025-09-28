@@ -44,6 +44,11 @@ docker run -p 8080:8080 awana-app
 
 - `JAVA_OPTS`: JVM options (default: "-Xmx512m -Xms256m")
 - `GRAILS_ENV`: Environment (default: "production")
+- `DATABASE_URL`: PostgreSQL connection URL (e.g., "jdbc:postgresql://postgres:5432/awana_db")
+- `DATABASE_USERNAME`: PostgreSQL username (e.g., "awana_user")
+- `DATABASE_PASSWORD`: PostgreSQL password
+
+**Note:** Without PostgreSQL environment variables, the application will use H2 in-memory database and data will be lost on restart.
 
 ## Data Persistence
 
@@ -129,6 +134,13 @@ Save as `docker-compose.yml` and run:
 ```bash
 docker-compose up -d
 ```
+
+### Database Schema Management
+
+**Important:** The application is currently configured with `dbCreate: create-drop` which recreates the database schema on each startup. For production:
+
+1. **First deployment:** Use `dbCreate: create-drop` to create initial schema
+2. **Subsequent deployments:** Change to `dbCreate: update` in `application.yml` to preserve data
 
 ### Deployment Updates
 
