@@ -61,29 +61,94 @@ The container includes a health check that monitors the application:
 docker ps  # Shows health status
 ```
 
-## Production Deployment
+## Production Deployment with PostgreSQL
 
-For production, consider using docker-compose:
+For production deployment with persistent database:
+
+### Option 1: PostgreSQL + Application Containers
+
+```bash
+# 1. Start PostgreSQL first
+docker run -d --name awana-postgres \
+    -e POSTGRES_DB=awana_db \
+    -e POSTGRES_USER=awana_user \
+    -e POSTGRES_PASSWORD=your_production_password_here \
+    -v postgres_data:/var/lib/postgresql/data \
+    -p 5432:5432 \
+    postgres:15-alpine
+
+# 2. Then start your app (linking to postgres container)
+docker run -d --name awana-club -p 8083:8080 \
+    --link awana-postgres:postgres \
+    -v ./awana_storage:/app/storage \
+    -v ./awana_data:/app/data \
+    -e GRAILS_ENV=production \
+    -e DATABASE_URL="jdbc:postgresql://postgres:5432/awana_db" \
+    -e DATABASE_USERNAME="awana_user" \
+    -e DATABASE_PASSWORD="your_production_password_here" \
+    ghcr.io/joshjetson/awana:latest
+```
+
+### Option 2: Docker Compose (Alternative)
 
 ```yaml
 version: '3.8'
 services:
-  awana:
-    build: https://github.com/joshjetson/awana.git
-    ports:
-      - "8080:8080"
-    volumes:
-      - awana-data:/app/data
+  postgres:
+    image: postgres:15-alpine
     environment:
-      - JAVA_OPTS=-Xmx1g -Xms512m
-    restart: unless-stopped
+      POSTGRES_DB: awana_db
+      POSTGRES_USER: awana_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  awana:
+    image: ghcr.io/joshjetson/awana:latest
+    depends_on:
+      - postgres
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./awana_storage:/app/storage
+      - ./awana_data:/app/data
+    environment:
+      - GRAILS_ENV=production
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/awana_db
+      - DATABASE_USERNAME=awana_user
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
 
 volumes:
-  awana-data:
+  postgres_data:
 ```
 
 Save as `docker-compose.yml` and run:
 
 ```bash
 docker-compose up -d
+```
+
+### Deployment Updates
+
+For CI/CD deployments:
+
+```bash
+# Stop current container
+docker stop awana-club && docker rm awana-club
+
+# Pull latest image
+docker pull ghcr.io/joshjetson/awana:latest
+
+# Restart with same command (PostgreSQL container stays running)
+docker run -d --name awana-club -p 8083:8080 \
+    --link awana-postgres:postgres \
+    -v ./awana_storage:/app/storage \
+    -v ./awana_data:/app/data \
+    -e GRAILS_ENV=production \
+    -e DATABASE_URL="jdbc:postgresql://postgres:5432/awana_db" \
+    -e DATABASE_USERNAME="awana_user" \
+    -e DATABASE_PASSWORD="your_production_password_here" \
+    ghcr.io/joshjetson/awana:latest
 ```

@@ -83,6 +83,7 @@ dependencies {
     console "org.grails:grails-console"
     runtimeOnly "com.bertramlabs.plugins:asset-pipeline-grails:4.5.1"
     runtimeOnly "com.h2database:h2"
+    implementation "org.postgresql:postgresql:42.5.4"
     runtimeOnly "org.apache.tomcat:tomcat-jdbc"
     runtimeOnly "org.fusesource.jansi:jansi:1.18"
     implementation 'org.grails.plugins:database-migration:4.2.1'
