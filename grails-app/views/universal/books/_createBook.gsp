@@ -99,7 +99,12 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                                 <div class="border border-gray-200 rounded-lg p-6">
                                     <div class="flex items-center justify-between mb-4">
                                         <h4 class="text-md font-semibold text-gray-900">Chapter ${chapter.chapterNumber}</h4>
-                                        <button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm" style="${book.chapters.size() <= 1 ? 'display: none;' : ''}">
+                                        <g:if test="${chapter.id}">
+                                            <button type="button" onclick="deleteChapter(this, ${chapter.id})" class="text-red-600 hover:text-red-800 text-sm" style="${book.chapters.size() <= 1 ? 'display: none;' : ''}">
+                                        </g:if>
+                                        <g:else>
+                                            <button type="button" onclick="removeChapter(this)" class="text-red-600 hover:text-red-800 text-sm" style="${book.chapters.size() <= 1 ? 'display: none;' : ''}">
+                                        </g:else>
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
@@ -332,6 +337,35 @@ Loaded via: /renderView?viewType=createBook&clubId=123
                 }
             }).catch(error => {
                 console.error('Error deleting section:', error);
+                // Could show a notification here if needed
+            });
+        };
+
+        window.deleteChapter = function(button, chapterId) {
+            console.log('deleteChapter called with chapterId:', chapterId);
+
+            if (!chapterId) {
+                console.error('No chapterId provided');
+                return;
+            }
+
+            // Remove from DOM immediately
+            const chapterDiv = button.closest('.border');
+            chapterDiv.remove();
+            updateRemoveButtons();
+
+            // Make DELETE request to backend with proper headers
+            fetch('/api/universal/Chapter/' + chapterId, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': '*/*',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'HX-Request': 'true',
+                    'HX-Current-URL': window.location.href,
+                    'Origin': window.location.origin
+                }
+            }).catch(error => {
+                console.error('Error deleting chapter:', error);
                 // Could show a notification here if needed
             });
         };
