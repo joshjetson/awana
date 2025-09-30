@@ -238,46 +238,162 @@ class BootstrapService {
     }
 
     private void createSampleFamilies(List<Club> clubs) {
-        
-        // Johnson Family
-        Household johnsonFamily = new Household(
-            name: "Johnson Family",
+
+        // Baggett Family
+        Household baggettFamily = new Household(
+            name: "Baggett Family",
             qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
             address: "123 Maple Street, Anytown ST 12345",
-            phoneNumber: "(555) 123-4567", 
-            email: "johnson.family@email.com"
+            phoneNumber: "780-233-1702",
+            email: "baggett.family@email.com"
         ).save(failOnError: true)
-        
-        createStudent("Emma", "Johnson", "2018-03-15", johnsonFamily, clubs.find { it.name == "Sparks" })
-        createStudent("Liam", "Johnson", "2020-08-22", johnsonFamily, clubs.find { it.name == "Cubbies" })
-        
-        // Smith Family
-        Household smithFamily = new Household(
-            name: "Smith Family",
-            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}", 
-            address: "456 Oak Avenue, Anytown ST 12345",
-            phoneNumber: "(555) 234-5678",
-            email: "smith.family@email.com"
-        ).save(failOnError: true)
-        
-        createStudent("Sophia", "Smith", "2015-11-08", smithFamily, clubs.find { it.name == "Truth & Training" })
-        createStudent("Mason", "Smith", "2017-05-12", smithFamily, clubs.find { it.name == "Sparks" })
-        
-        // Brown Family
-        Household brownFamily = new Household(
-            name: "Brown Family",
+
+        createStudent("Aiden", "Baggett", "2021-05-06", baggettFamily, clubs.find { it.name == "Cubbies" })
+        createStudent("Owen", "Baggett", "2023-04-27", baggettFamily, clubs.find { it.name == "Puggles" })
+
+        // Brownlee Family
+        Household brownleeFamily = new Household(
+            name: "Brownlee Family",
             qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
-            address: "789 Pine Road, Anytown ST 12345", 
-            phoneNumber: "(555) 345-6789",
-            email: "brown.family@email.com"
+            address: "456 Oak Avenue, Anytown ST 12345",
+            phoneNumber: "210-535-9544",
+            email: "brownlee.family@email.com"
         ).save(failOnError: true)
-        
-        createStudent("Olivia", "Brown", "2012-07-18", brownFamily, clubs.find { it.name == "Trek" })
-        createStudent("Noah", "Brown", "2014-02-25", brownFamily, clubs.find { it.name == "Truth & Training" })
-        createStudent("Ava", "Brown", "2019-09-10", brownFamily, clubs.find { it.name == "Cubbies" })
-        createStudent("Ethan", "Brown", "2022-04-12", brownFamily, clubs.find { it.name == "Puggles" })
-        
-        log.info("Created 3 sample families with 9 students")
+
+        createStudent("Peter", "Brownlee", "2022-08-02", brownleeFamily, clubs.find { it.name == "Cubbies" })
+        createStudent("Makeo", "Brownlee", "2024-05-19", brownleeFamily, clubs.find { it.name == "Puggles" })
+
+        // Burkhead Family
+        Household burkheadFamily = new Household(
+            name: "Burkhead Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "789 Pine Road, Anytown ST 12345",
+            phoneNumber: "815-708-2232",
+            email: "burkhead.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Caleb", "Burkhead", "2022-04-04", burkheadFamily, clubs.find { it.name == "Cubbies" })
+        createStudent("Jemma", "Burkhead", "2019-08-30", burkheadFamily, clubs.find { it.name == "Sparks" })
+        createStudent("Noah", "Burkhead", "2016-10-31", burkheadFamily, clubs.find { it.name == "Truth & Training" })
+
+        // Dominguez Family
+        Household dominguezFamily = new Household(
+            name: "Dominguez Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "321 Cedar Lane, Anytown ST 12345",
+            phoneNumber: "830-358-9834",
+            email: "dominguez.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Audrey", "Dominguez", "2016-08-16", dominguezFamily, clubs.find { it.name == "Truth & Training" })
+        createStudent("Laiken", "Dominguez", "2014-09-23", dominguezFamily, clubs.find { it.name == "Truth & Training" })
+
+        // Davis Family
+        Household davisFamily = new Household(
+            name: "Davis Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "654 Birch Street, Anytown ST 12345",
+            phoneNumber: "210-627-8093",
+            email: "davis.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Zao", "Davis", "2018-09-29", davisFamily, clubs.find { it.name == "Sparks" })
+
+        // Halley Family
+        Household halleyFamily = new Household(
+            name: "Halley Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "987 Elm Drive, Anytown ST 12345",
+            phoneNumber: "832-970-1545",
+            email: "halley.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("James", "Halley", "2018-12-01", halleyFamily, clubs.find { it.name == "Sparks" })
+        createStudent("Johnathan", "Halley", "2017-03-27", halleyFamily, clubs.find { it.name == "Truth & Training" })
+
+        // Johnson Family 1 (Emily & Philip) - Only Ashley
+        Household johnson1Family = new Household(
+            name: "Johnson Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "111 Willow Way, Anytown ST 12345",
+            phoneNumber: "210-852-6501",
+            email: "johnson.emilyandphilip@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Ashley", "Johnson", "2017-03-17", johnson1Family, clubs.find { it.name == "Truth & Training" })
+
+        // Johnson Family 2 (Derick & Joanna) - Amethyst, Avalon, Sebastian, Tatiana
+        Household johnson2Family = new Household(
+            name: "Johnson Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "222 Oak Heights, Anytown ST 12345",
+            phoneNumber: "520-686-1088",
+            email: "johnson.derickandjoanna@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Amethyst", "Johnson", "2017-03-11", johnson2Family, clubs.find { it.name == "Truth & Training" })
+        createStudent("Avalon", "Johnson", "2020-08-11", johnson2Family, clubs.find { it.name == "Sparks" })
+        createStudent("Sebastian", "Johnson", "2018-09-10", johnson2Family, clubs.find { it.name == "Sparks" })
+        createStudent("Tatiana", "Johnson", "2016-10-24", johnson2Family, clubs.find { it.name == "Truth & Training" })
+
+        // Leland Family
+        Household lelandFamily = new Household(
+            name: "Leland Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "333 Maple Grove, Anytown ST 12345",
+            phoneNumber: "940-447-3847",
+            email: "leland.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Theo", "Leland", "2019-09-23", lelandFamily, clubs.find { it.name == "Sparks" })
+
+        // Madden Family
+        Household maddenFamily = new Household(
+            name: "Madden Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "444 Pine Circle, Anytown ST 12345",
+            phoneNumber: "918-706-7813",
+            email: "madden.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Lucy", "Madden", "2017-12-07", maddenFamily, clubs.find { it.name == "Truth & Training" })
+
+        // Oliver Family
+        Household oliverFamily = new Household(
+            name: "Oliver Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "555 Cherry Lane, Anytown ST 12345",
+            phoneNumber: "210-296-1071",
+            email: "oliver.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Harrison", "Oliver", "2018-09-07", oliverFamily, clubs.find { it.name == "Sparks" })
+
+        // Padilla Family
+        Household padillaFamily = new Household(
+            name: "Padilla Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "666 Aspen Drive, Anytown ST 12345",
+            phoneNumber: "940-704-2190",
+            email: "padilla.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Maeve", "Padilla", "2021-02-03", padillaFamily, clubs.find { it.name == "Cubbies" })
+        createStudent("Violet", "Padilla", "2021-02-03", padillaFamily, clubs.find { it.name == "Cubbies" })
+
+        // Ramirez Family
+        Household ramirezFamily = new Household(
+            name: "Ramirez Family",
+            qrCode: "HH-${UUID.randomUUID().toString().substring(0, 8).toUpperCase()}",
+            address: "777 Spruce Court, Anytown ST 12345",
+            phoneNumber: "210-542-1346",
+            email: "ramirez.family@email.com"
+        ).save(failOnError: true)
+
+        createStudent("Abraham", "Ramirez", "2024-02-19", ramirezFamily, clubs.find { it.name == "Puggles" })
+        createStudent("Emma", "Ramirez", "2021-02-06", ramirezFamily, clubs.find { it.name == "Cubbies" })
+
+        log.info("Created 15 families with 30 students")
     }
 
     private Student createStudent(String firstName, String lastName, String birthDate, Household household, Club club) {
