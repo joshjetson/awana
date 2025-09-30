@@ -71,7 +71,7 @@ environments:
       url: "${DATABASE_URL}"
       username: "${DATABASE_USERNAME}"
       password: "${DATABASE_PASSWORD}"
-      dbCreate: create-drop
+      dbCreate: update
       properties:
         jmxEnabled: true
         initialSize: 5
